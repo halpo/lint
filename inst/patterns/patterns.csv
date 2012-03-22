@@ -1,0 +1,9 @@
+name,pattern,message,span.lines,classes.exclude,classes.filter,pattern.filter
+space after comma,",(?=[^\s])",no space after comma,FALSE,comments,,
+space around infix (No function call),,no space around infix opperators,TRUE,comments,,
+space around infix (within function call),,no space around infix opperators.,TRUE,comments,,
+space around argument assignment,,no space around argument assignment '=',FALSE,,function_args,
+variable names no _,,,,,,
+variable names no .,,,,,,
+Integers declared with L,,,,,,
+Numerics delared with .,,,,,,
