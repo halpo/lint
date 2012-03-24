@@ -4,19 +4,24 @@
 #' @details
 #' 
 #' 
-#' 
-#' 
-#' 
+#' @imports plyr
+#' @imports stringr
+#' @importsFrom parser parser
+NULL
+# library(plyr)  
+# library(stringr)
+# library(parser)
 
-library(plyr)  
-library(stringr)
-library(parser)
+with_default <- function(x,default){
+  if(missing(x) | is.null(x) | is.na(x)) return(default)
+  x
+}
 
-lint <- function(file, text=NULL, patterns = lint.patterns){
+lint <- function(file, text=NULL, tests = lint.tests){
 #' Check a source document for stylistic errors.
 #' @param file a vector of file paths.
 #' @param text text to check
-#' @param patterns  The named list of patterns to use to check.
+#' @param tests The list of tests to use to check.
 #' 
 #' @importFrom plyr mdply
 #' @family lint
@@ -27,13 +32,31 @@ lint <- function(file, text=NULL, patterns = lint.patterns){
     file = textConnection(text)
     on.exit(close(file))
   }
-  lines <- readLines(file)
   
-  maply(patterns, )
+  llply(lint.tests, .dispatchTest)  
+}
+
+dispatch_test <- function(test, file){
+  parse.data <- attr(parser(file), 'data')
+  lines <- readLines(file)  
   
-} 
-check_pattern <- function(lines,  pattern, message=deparse(pattern), 
-  warning=F, check.comments=F, ...) {
+  #include.region <- with_default(test$include.region, character(0))
+  if(length(include.region)>=1L){
+  }
+  
+  use.lines = with_default(test$use.lines, TRUE)
+  if(!use.lines) lines <- paste(lines, '\n', collapse='')
+  
+  if(!is.null(test$pattern)){
+    do.call(check_pattern, append(test, list(lines=lines)))
+  }
+  
+}
+check_pattern <- function(lines
+  , pattern
+  , message=deparse(pattern)
+  , warning=F
+  , ...) {
 #' Check a pattern against lines
 #' 
 #' This is part of lint which checks lines of text for stylistic problems.
@@ -132,7 +155,7 @@ find2replace <- function(find.data){
   })[, -seq_len(ncol(find.data))]
 }
 
-get_child <- function(id, parse.data, nlevels=-1L) {
+get_child <- function(id, parse.data, nlevels=-1L, include.parent=T) {
 #'  @rdname get_children
 #'  @export
   stopifnot(length(id)==1)
@@ -141,7 +164,7 @@ get_child <- function(id, parse.data, nlevels=-1L) {
     nlevels <- nlevels - 1
     old.ids <- ids
     parse.sub <- subset(parse.data, parent %in% ids)
-    ids <- c(id, parse.sub$id)
+    if(include.parent) ids <- c(id, parse.sub$id) else ids <- parse.sub$id       
     if (identical(ids, old.ids)) break 
   }
   parse.sub
@@ -171,6 +194,19 @@ find_children <- function(...){
   parse2find(get_children(...))
 }
 
+get_parent <- function(id, parse.data) {
+  parse.data[parse.data$id == id, 'parent']
+}
+get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
+  parents <- id
+  while(nancestors > 0L){
+    nancestors <- nancestors -1
+    nchildren <- nchildren + 1
+    parents <- get_parent(parents, parse.data)
+  }
+  get_child(parents, parse.data, nchildren)
+}
+
 get_docs <- function(parent.id, parse.data) {
 #'  Find  All the documentation associated with an expression
 #'  
@@ -185,7 +221,7 @@ get_docs <- function(parent.id, parse.data) {
 #'    or text containg the expression of interest.
 #'  
 #'  @export
-  if(length(parent.id)>1) alply(parent.id, get_docs, parse.data=parse.data))
+  if(length(parent.id)>1) alply(parent.id, get_docs, parse.data=parse.data)
   token.desc <- NULL
   kids <- get_child(parent.id, parse.data=parse.data, nlevels=-1L)
   parent.id <- c(parent.id, kids$id)
@@ -322,5 +358,11 @@ if (F) { # testing code
   
   alply(top.expressions$id, 1, find_associated, parse.data)
     
-  pid=278
+  pid=926L
+  ex <- 
+  subset(parse.data, line1%in% 86:87 & token.desc=="SYMBOL_FUNCTION_CALL")
+  
+  get_parent(pid, parse.data)
+  get_children(get_parent(ex$parent, parse.data))
+  
 }
