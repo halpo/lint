@@ -1,4 +1,5 @@
 
+test<-
 
 spacing.line_length.80 <- list(pattern = "^.{,80}\\s+([^\\s]+)"
   , use.lines = T
@@ -17,7 +18,6 @@ spacing.indentation.evenindent <- list(pattern = "^(  )*( )\\S"
 
 
 lint.patterns <- list(
-
 
 )
 

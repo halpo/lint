@@ -8,12 +8,13 @@
 #' @imports stringr
 #' @importsFrom parser parser
 NULL
-# library(plyr)  
-# library(stringr)
-# library(parser)
-
-with_default <- function(x,default){
-  if(missing(x) | is.null(x) | is.na(x)) return(default)
+if(F){
+library(plyr)  
+library(stringr)
+library(parser)
+}
+with_default <- function(x, default){
+  if(all(is.null(x)) | all(is.na(x))) return(default)
   x
 }
 
@@ -36,16 +37,39 @@ lint <- function(file, text=NULL, tests = lint.tests){
   llply(lint.tests, .dispatchTest)  
 }
 
-dispatch_test <- function(test, file){
-  parse.data <- attr(parser(file), 'data')
-  lines <- readLines(file)  
-  
-  #include.region <- with_default(test$include.region, character(0))
-  if(length(include.region)>=1L){
+dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'), lines=ReadLines(file)){
+  include.region <- with_default(test$include.region, character(0))
+  if (length(include.region)>=1L) {
   }
+  
+  exclude.region <- with_default(test$exclude.region, c("comment", "string"))
+  
+  i=1
+  if (length(exclude.region)> 0L) {
+    char.ex.region.idx <- laply(exclude.region, inherits, 'character')
+    fun.ex.region.idx  <- laply(exclude.region, inherits, 'function')
+    if (!all(char.ex.region.idx | fun.ex.region.idx)) {
+      stop("Exclude regions must be either character strings or functions that return find data.")
+    }
+    fun.ex.region <- as.list(exclude.region )
+    ex.region.names  <- paste("strip", exclude.region[char.ex.region.idx], sep='_')
+    mf <- function(...)match.fun(...)
+    for(i in which(char.ex.region.idx)) fun.ex.region[[i]] <- match.fun(ex.region.names[i])
+    for(fun.ex in fun.ex.region){
+      lines <- fun.ex(lines=lines)
+    }
+    
+    # find method
+    find.region.names  <- paste("find", exclude.region[char.ex.region.idx], sep='_')
+    fun.find.region <- as.list(exclude.region)
+    for(i in which(char.ex.region.idx)) fun.find.region[[i]] <- match.fun(find.region.names[i])
+    llply(fun.find.region, do.call, list(parse.data=parse.data))
+    
+  } 
   
   use.lines = with_default(test$use.lines, TRUE)
   if(!use.lines) lines <- paste(lines, '\n', collapse='')
+
   
   if(!is.null(test$pattern)){
     do.call(check_pattern, append(test, list(lines=lines)))
@@ -154,6 +178,39 @@ find2replace <- function(find.data){
     }
   })[, -seq_len(ncol(find.data))]
 }
+merge_find <- function(...){
+  # merge multiple find results
+  # @param ... find results.
+  find.results <- c(list(), ...)
+  do_results_overlap <- function(x, y=x){
+    if (nrow(x) > 1) return(laply(mlply(x,data.frame), do_results_overlap, y=y))
+    y <- mlply(y,data.frame)
+    if (nrow(y) > 1) return(llply(y, do_results_overlap, x=x))
+    
+    if (x$line2 < y$line1) return(FALSE)
+    if (x$line1 > y$line2) return(FALSE)
+    x.start <- x$line1
+    x.end   <- x$line2
+    y.start <- y$line1
+    y.end   <- y$line2
+    max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
+    if (max.byte>0) {
+      x.start <- x.start + x$byte1/max.byte
+      x.end   <- x.end   + x$byte2/max.byte 
+      y.start <- y.start + y$byte1/max.byte
+      y.end   <- y.end   + y$byte2/max.byte
+    }
+    if (x.start < y.start && y.start < x.end) return(TRUE)
+    if (x.start < y.end   && y.end   < x.end) return(TRUE)
+    if (y.start < x.start && x.start < y.end) return(TRUE)
+    if (y.start < x.end   && x.end   < y.end) return(TRUE)
+    return(FALSE)
+  }
+  do_results_overlap(x,y)
+  #' @results a single 
+  
+}
+
 
 get_child <- function(id, parse.data, nlevels=-1L, include.parent=T) {
 #'  @rdname get_children
@@ -316,8 +373,15 @@ find_function_body <- function(file, parse.data = attr(parser(file))) {
 strip_function_body <- stripper(find_function_body)
 extract_function_body <- extractor(find_function_body)
 
-
-
+get_call_args <- function(file, parse.data=attr(parser(file))){
+  call.nodes <- subset(parse.data, token.desc == "SYMBOL_FUNCTION_CALL")
+  llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
+}
+find_call_args <- function(file, parse.data=attr(parser(file))){
+  parse2find(get_call_args(parse.data=parse.data))
+}
+strip_call_args   <- stripper(find_call_args)
+extract_call_args <- extractor(extract_call_args)
 
 if (F) { # testing code
   file <- normalizePath("lint.R")
@@ -358,11 +422,11 @@ if (F) { # testing code
   
   alply(top.expressions$id, 1, find_associated, parse.data)
     
-  pid=926L
+  pid=925L
   ex <- 
   subset(parse.data, line1%in% 86:87 & token.desc=="SYMBOL_FUNCTION_CALL")
   
   get_parent(pid, parse.data)
   get_children(get_parent(ex$parent, parse.data))
-  
+  get_family(pid, parse.data, 2) 
 }
