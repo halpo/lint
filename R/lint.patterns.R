@@ -1,23 +1,79 @@
+#' @title Style checks
+#' @name style-checks
+#' @docType data
+#' 
+#' @aliases 
+#'     lint.tests
+#'     style_checks
+#'     style_tests
+#' 
+#' @format
+#' Each test can be defined in several formats and is very flexible.
+#' A test consists of a names list of attributes.
+#' \enumerate{
+#'   \item \code{pattern} is a pcre compatible \link[base:regex]{regular
+#'         expression} that is tested. Can be a character vector of expressions.
+#'   \item \code{message} The message to be displayed.
+#'   \item \code{include.region} lists regions to restrict the search to.
+#'         Can be a character vector specifying the known regions, or a list of 
+#'         functions that interpret output from \code{\link{parser}}.
+#'   \item \code{exclude.region=c('comments', 'string')} lists regions to 
+#'         restrict the search to. Operates the sames as \code{include.region}.
+#'   \item \code{use.lines=T} should the pattern be evaluated in lines (default)
+#'          or as a contiguous block of text.
+#'   \item \code{warning=F}
+#' }
+#' 
+#' 
+NULL
 
-test<-
-
-spacing.line_length.80 <- list(pattern = "^.{,80}\\s+([^\\s]+)"
-  , use.lines = T
-  , exclude.regions = character(0)
+.test<-
+#' @rdname style-checks
+spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
+  , message = "Line width exceeds 80 characters"
+  , use.lines = TRUE
+  , exclude.region = character(0)
 )
+
+#' @rdname style-checks
+spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
+  , message = "Line width exceeds 80 characters"
+  , use.lines = TRUE
+  , exclude.region = character(0)
+  , warning = TRUE
+)
+
+#' @rdname style-checks
 spacing.indentation.notabs <- list(pattern ="^\\t"
   , message = "tabs not allowed for intendation"
-  , exclude.regions = character(0)
+  , exclude.region = character(0)
 )
-spacing.notabs <- list(pattern = "\\t", message = "tabs not ever allowed")
+
+#' @rdname style-checks
+spacing.notabs <- list(pattern = "\\t"
+  , message = "tabs not ever allowed"
+  , exclude.region = "string"
+)
+
+#' @rdname style-checks
 spacing.indentation.evenindent <- list(pattern = "^(  )*( )\\S"
   , message = "indentation should be by two spaces."
-  , exclude.regions = c("function_args", "call_args")
+  , exclude.region = c("function_args", "call_args")
 )
-  
 
+#' @rdname style-checks
+spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
+  , message =  "no space after comma")
 
-lint.patterns <- list(
+#' @rdname style-checks
+spacing.spacearoundinfix <- list(
+    pattern = c("[^\\s+-=<>]([+-=<>]{1,2})", "([+-=<>]{1,2})[^\\s+-=<>]")
+  , message = "needs space aroundin fix opperators"
+  , exclude.region = c("call_args")
+)
+
+#' @rdname style-checks
+lint.tests <- list(
 
 )
 
