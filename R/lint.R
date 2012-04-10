@@ -1,24 +1,34 @@
+#' @name package-lint
+#' @title \code{lint}: R code style checker
 #' @docType package
-#' @author Andrew Redd <Andrew.Redd@hsc.utah.edu>
+#' @author Andrew Redd
 #' 
 #' @details
+#' \code{lint}
 #' 
-#' 
-#' @imports plyr
-#' @imports stringr
-#' @importsFrom parser parser
+#' @import plyr
+#' @import stringr
+#' @importFrom parser parser
+#' @importFrom harvestr noattr
+#' @collate lint.patterns.R
+#' @exportPattern ^[^\\.].*
 NULL
-if(F){
-library(plyr)  
-library(stringr)
-library(parser)
-}
-with_default <- function(x, default){
-  if(all(is.null(x)) | all(is.na(x))) return(default)
+
+{ # TODO
+  # ----
+  # * independent function as a check.
+  # * 
+  # 
+} 
+
+{ # Core Functions
+with_default <- function(x, default) {
+  if (all(is.null(x))) return(default)
+  if (length(x) > 0 && all(is.na(x))) return(default)
   x
 }
 
-lint <- function(file, text=NULL, tests = lint.tests){
+lint <- function(file, text=NULL, tests = lint.tests) {
 #' Check a source document for stylistic errors.
 #' @param file a vector of file paths.
 #' @param text text to check
@@ -34,17 +44,17 @@ lint <- function(file, text=NULL, tests = lint.tests){
     on.exit(close(file))
   }
   
-  llply(lint.tests, .dispatchTest)  
+  llply(lint.tests, dispatch_test)  
 }
 
-dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'), lines=ReadLines(file)){
+dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'), 
+  lines=readLines(file)) {
   include.region <- with_default(test$include.region, character(0))
   if (length(include.region)>=1L) {
   }
   
   exclude.region <- with_default(test$exclude.region, c("comment", "string"))
   
-  i=1
   if (length(exclude.region)> 0L) {
     char.ex.region.idx <- laply(exclude.region, inherits, 'character')
     fun.ex.region.idx  <- laply(exclude.region, inherits, 'function')
@@ -68,18 +78,20 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'), lin
   } 
   
   use.lines = with_default(test$use.lines, TRUE)
-  if(!use.lines) lines <- paste(lines, '\n', collapse='')
-
-  
-  if(!is.null(test$pattern)){
+  if (!use.lines) lines <- paste(lines, '\n', collapse='')
+  if (!is.null(test$pattern)) {
+    if (F) {
+      pattern <- test$pattern
+      message <- test$message
+    }
     do.call(check_pattern, append(test, list(lines=lines)))
-  }
-  
+  } else
+  stop("Ill-formatted check.")
 }
 check_pattern <- function(lines
   , pattern
   , message=deparse(pattern)
-  , warning=F
+  , warning=FALSE
   , ...) {
 #' Check a pattern against lines
 #' 
@@ -91,22 +103,29 @@ check_pattern <- function(lines
 #' @param pattern perl compatible regular expression.
 #' @param message message describing the problem being checked.
 #' @param warning should warning be issued for messages.
-#' @param check.comments should comments be checked?  If false comments are stripped 
-#'                out prior to checking.
+#' @param check.comments should comments be checked?  If false comments are 
+#'          stripped out prior to checking.
+#' @param ... discarded.
 #' @return returns an integer vector of the problem lines if problems were 
 #'   found. otherwise returns TRUE if the lines pass the check. 
 #'   \code{\link{isTRUE}} could be useful for checking the return value.
 #' @export
 #' @family lint
 #' @importFrom plyr laply llply
-  if(!check.comments){
-    lines <- strip_comments(lines)
+if(F){
+  pattern = "^.{80}\\s*[^\\s]"
+}
+  if (length(pattern)>1) {
+    sort(
+      unlist(llply(pattern, check_pattern, lines=lines, message=message, warning=warning))
+    )
   }
   reg.info <- gregexpr(pattern, lines, perl=T)
   problem.yn <- laply(llply(reg.info, `>`, 0), any)
   if (any(problem.yn)) {
     problem.lines <- which(problem.yn)
-    message <- sprintf(message, regmatches(lines, reg.info)[problem.lines][[1]][[1]])
+    message <- sprintf(message, 
+      regmatches(lines, reg.info)[problem.lines][[1]][[1]])
     str <- sprintf("Lint: %s: found on lines %s", message, 
                    paste(problem.lines, collapse=', '))
     if(warning) warning(str) else message(str)
@@ -115,8 +134,9 @@ check_pattern <- function(lines
     return(invisible(TRUE))
   }
 }
-
-parse2find <- function(parse.data){
+}
+{ # Conversion
+parse2find <- function(parse.data) {
 #'  Convert parser Structured data to find structured data
 #'  
 #'  Converts data from the results of \code{\link{parser}}
@@ -143,7 +163,7 @@ parse2find <- function(parse.data){
     , tail(parse.data, 1L)[1L, names2]
   ))
 }
-find2replace <- function(find.data){
+find2replace <- function(find.data) {
 #' Convert find structured data to replace structured data
 #'
 #' Converts find data to data that is suitable for use with replace function.
@@ -168,51 +188,84 @@ find2replace <- function(find.data){
 #'  @family find-functions
   mdply(find.data, function(line1, byte1, line2, byte2, ...){
     if (line1==line2) {
-      data.frame(line=line1, start = byte1 + 1, end = byte2 + 1)
+      data.frame(line=line1, start = byte1 + 1, end = byte2)
     } else {
       nlines = line2-line1
       data.frame(
         line  = c(line1:line2), 
         start = c(byte1+1, rep(1L, nlines)),
-        end   = c(rep(-1L, nlines), byte2+1))
+        end   = c(rep(-1L, nlines), byte2))
     }
   })[, -seq_len(ncol(find.data))]
+}
+do_results_overlap <- function(x, y=x) {
+  if (nrow(x) > 1) {
+    x   <- mlply(x,data.frame)
+    res <- llply(x, do_results_overlap, y=y)
+    return(laply(res, noattr))
+  }
+  if (nrow(y) > 1) {
+    y <- mlply(y,data.frame)
+    res <- llply(y, do_results_overlap, x=x)
+    return(laply(res, noattr))
+  }
+  if (x$line2 < y$line1) return(FALSE)
+  if (x$line1 > y$line2) return(FALSE)
+  x.start <- x$line1
+  x.end   <- x$line2
+  y.start <- y$line1
+  y.end   <- y$line2
+  max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
+  if (max.byte>0) {
+    x.start <- x.start + x$byte1/max.byte
+    x.end   <- x.end   + x$byte2/max.byte 
+    y.start <- y.start + y$byte1/max.byte
+    y.end   <- y.end   + y$byte2/max.byte
+  }
+  if (x.start < y.start && y.start < x.end) return(TRUE)
+  if (x.start < y.end   && y.end   < x.end) return(TRUE)
+  if (y.start < x.start && x.start < y.end) return(TRUE)
+  if (y.start < x.end   && x.end   < y.end) return(TRUE)
+  return(FALSE)
 }
 merge_find <- function(...){
   # merge multiple find results
   # @param ... find results.
   find.results <- c(list(), ...)
-  do_results_overlap <- function(x, y=x){
-    if (nrow(x) > 1) return(laply(mlply(x,data.frame), do_results_overlap, y=y))
-    y <- mlply(y,data.frame)
-    if (nrow(y) > 1) return(llply(y, do_results_overlap, x=x))
+  if (F) {
+    parse.data=stop()
+    x <- find_function_args(parse.data=parse.data)
+    y <- find_call_args(parse.data=parse.data)
+    x <- x[1,]
+    y <- y[1,]
     
-    if (x$line2 < y$line1) return(FALSE)
-    if (x$line1 > y$line2) return(FALSE)
-    x.start <- x$line1
-    x.end   <- x$line2
-    y.start <- y$line1
-    y.end   <- y$line2
-    max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
-    if (max.byte>0) {
-      x.start <- x.start + x$byte1/max.byte
-      x.end   <- x.end   + x$byte2/max.byte 
-      y.start <- y.start + y$byte1/max.byte
-      y.end   <- y.end   + y$byte2/max.byte
-    }
-    if (x.start < y.start && y.start < x.end) return(TRUE)
-    if (x.start < y.end   && y.end   < x.end) return(TRUE)
-    if (y.start < x.start && x.start < y.end) return(TRUE)
-    if (y.start < x.end   && x.end   < y.end) return(TRUE)
-    return(FALSE)
+    x.idx <- overlaps[1, 1]
+    y.idx <- overlaps[1, 2]
   }
-  do_results_overlap(x,y)
-  #' @results a single 
-  
+  overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
+  names(overlaps) <- c('x.idx', 'y.idx')
+  merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
+    x.row <- x[x.idx, ]
+    y.row <- y[y.idx, ]
+    data.frame(
+      line1 = min(x.row$line1, y.row$line1),
+       col1 = min( x.row$col1,  y.row$col1),
+      byte1 = min(x.row$byte1, y.row$byte1),
+      line2 = min(x.row$line2, y.row$line2),
+       col2 = min( x.row$col2,  y.row$col2),
+      byte2 = min(x.row$byte2, y.row$byte2))
+  }, x=x, y=y)
+  keep <- c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')
+  new.finds <- rbind(merged[keep],
+    x[-overlaps$x.idx, keep],
+    y[-overlaps$y.idx, keep])
+  #' @results a single \code{\link{data.frame}} with find results where overlaps
+  #'  were merged
+  new.finds[do.call(order, new.finds), ]
 }
-
-
-get_child <- function(id, parse.data, nlevels=-1L, include.parent=T) {
+}
+{ # Family Functions
+get_child <- function(id, parse.data, nlevels=-1L, include.parent=TRUE) {
 #'  @rdname get_children
 #'  @export
   stopifnot(length(id)==1)
@@ -220,7 +273,7 @@ get_child <- function(id, parse.data, nlevels=-1L, include.parent=T) {
   while(nlevels!=0) {
     nlevels <- nlevels - 1
     old.ids <- ids
-    parse.sub <- subset(parse.data, parent %in% ids)
+    parse.sub <- subset(parse.data, parse.data$parent %in% ids)
     if(include.parent) ids <- c(id, parse.sub$id) else ids <- parse.sub$id       
     if (identical(ids, old.ids)) break 
   }
@@ -229,7 +282,7 @@ get_child <- function(id, parse.data, nlevels=-1L, include.parent=T) {
 get_children <- function(id, parse.data, nlevels=-1L){
 #' Find the children of an expression
 #' 
-#'  This takes the \code{parse.data} and find all the children of the expression 
+#'  This takes the \code{parse.data} and find all the children of the expression
 #'  with the given \code{id}.
 #' 
 #'  @param id the id of the given expression in \code{parse.data}
@@ -250,7 +303,6 @@ find_children <- function(...){
 #'  @export
   parse2find(get_children(...))
 }
-
 get_parent <- function(id, parse.data) {
   parse.data[parse.data$id == id, 'parent']
 }
@@ -263,32 +315,9 @@ get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
   }
   get_child(parents, parse.data, nchildren)
 }
-
-get_docs <- function(parent.id, parse.data) {
-#'  Find  All the documentation associated with an expression
-#'  
-#'  Rind all Roxygen documentation that is associated with an expression
-#'  regardless of the location.  The traditional Roxygen documentation 
-#'  must preceed a function declaration, but this allows for finding all 
-#'  Roxygen comments regardless of the location.
-#'  
-#'  @param parent.id the id of the expression as defined by the 
-#'    \code{parse.data}
-#'  @param parse.data the results from \code{\link{parser}} for the file
-#'    or text containg the expression of interest.
-#'  
-#'  @export
-  if(length(parent.id)>1) alply(parent.id, get_docs, parse.data=parse.data)
-  token.desc <- NULL
-  kids <- get_child(parent.id, parse.data=parse.data, nlevels=-1L)
-  parent.id <- c(parent.id, kids$id)
-  parse.docs <- subset(parse.data,  
-      token.desc == "ROXYGEN_COMMENT"
-    & (parent %in% parent.id | parent %in% -parent.id)
-    )
 }
-
-strip <- function(lines, replace.data){
+{ # strip/extract utilities
+strip <- function(lines, replace.data, replace.with=''){
 #'  Strip a region from the text
 #'  
 #'  The \code{strip} fucntion removes the region defined in \code{replace.data} 
@@ -296,6 +325,7 @@ strip <- function(lines, replace.data){
 #'  
 #'  @param lines the lines with the text.  Results from \code{\link{readLines}}
 #'  @param replace.data replace data info.  See also \code{\link{find2replace}}
+#'  @param replace.with what to replace with , if there is a need.
 #'  
 #'  @return
 #'  The \code{lines} with the regions defined in replace.data removed.
@@ -304,7 +334,8 @@ strip <- function(lines, replace.data){
 #'  @export
   replace.data <- mutate(replace.data, string = lines[replace.data$line])
   var.names <- c('string', 'start', 'end')
-  new.lines <- maply(replace.data[, var.names], `str_sub<-`, value='', .expand=F)
+  new.lines <- maply(replace.data[, var.names], `str_sub<-`, value=replace.with,
+    .expand=F)
   lines[replace.data$line] <- new.lines
   lines
 }
@@ -319,19 +350,21 @@ extract <- function(lines, replace.data) {
   var.names <- c('string', 'start', 'end')
   maply(replace.data[, var.names], `str_sub`, .expand=F)
 }
-
-stripper <- function(finder){
+make_stripper <- function(finder, replace.with=''){
+  replace.with.default = replace.with
   function(
     lines,
     text =  paste(lines, collapse='\n'),
     file = textConnection(text), 
-    parse.data = attr(parser(file),"data")
+    parse.data = attr(parser(file),"data"),
+    replace.with = replace.with.default,
+    ...
   ){
     find <- finder(parse.data = parse.data)
-    strip(lines, find2replace(find))  
+    strip(lines, find2replace(find), replace.with=replace.with)  
   }
 }
-extractor <- function(finder){
+make_extractor <- function(finder){
   function(
     lines,
     text =  paste(lines, collapse='\n'),
@@ -342,91 +375,65 @@ extractor <- function(finder){
     extract(lines, find2replace(find))
   }
 }
-
-find_comments <- function(parse.data) {
-  comment.data <- subset(
-    parse.data
-    , token.desc %in% c("COMMENT", "ROXYGEN_COMMENT")
+}
+{ # Region Finders
+{ # comment
+find_comment <- function(parse.data) {
+  comment.data <- subset(parse.data
+    , parse.data$token.desc %in% c("COMMENT", "ROXYGEN_COMMENT")
   )
 }
-strip_comments   <- stripper(find_comments)
-extract_comments <- extractor(find_comments)
-
+strip_comment   <- make_stripper(find_comment)
+extract_comment <- make_extractor(find_comment)
+}
+{ # String
+find_string <- function(parse.data){
+  subset(parse.data,
+    parse.data$token.desc %in% c("STR_CONST")
+  )
+}
+strip_string   <- make_stripper(find_string, replace.with='""')
+extract_string <- make_extractor(find_string)
+}
+{ # Function
 find_function_args <- function(parse.data) {
-  ftokens <- subset(parse.data, token.desc=="FUNCTION")
+  ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
   ddply(ftokens, "id" , function(d, ..., parse.data) {
     p <- d$parent
     function.args <- subset(parse.data, parse.data$parent == d$p & 
-      !(token.desc %in% c('expr', 'FUNCTION')))
+      !(parse.data$token.desc %in% c('expr', 'FUNCTION')))
     parse2find(function.args)
   }, parse.data = parse.data)
 }
-strip_function_args   <- stripper(find_function_args)
-extract_function_args <- extractor(find_function_args)
- 
+strip_function_args   <- make_stripper(find_function_args, replace.with="()")
+extract_function_args <- make_extractor(find_function_args)
 find_function_body <- function(file, parse.data = attr(parser(file))) {
-  f.nodes <- subset(parse.data, token.desc == "FUNCTION")
+  f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
   body.contents <- find_children(body.parents, parse.data)
   parse2find(body.contents)
 }
-strip_function_body <- stripper(find_function_body)
-extract_function_body <- extractor(find_function_body)
-
+strip_function_body <- make_stripper(find_function_body, replace.with="{}")
+extract_function_body <- make_extractor(find_function_body)
+}
+{ # Call Args
 get_call_args <- function(file, parse.data=attr(parser(file))){
-  call.nodes <- subset(parse.data, token.desc == "SYMBOL_FUNCTION_CALL")
+  call.nodes <- subset(parse.data, 
+    parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
   llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
 }
 find_call_args <- function(file, parse.data=attr(parser(file))){
   parse2find(get_call_args(parse.data=parse.data))
 }
-strip_call_args   <- stripper(find_call_args)
-extract_call_args <- extractor(extract_call_args)
-
-if (F) { # testing code
+strip_call_args   <- make_stripper(find_call_args, replace.with="()")
+extract_call_args <- make_extractor(extract_call_args)
+}
+}
+if (F) {  # testing code
+  using(plyr, stringr, parser, harvestr, compiler)
   file <- normalizePath("lint.R")
   parse.data <- attr(parser(file),"data")
   lines <- readLines(file)
-  pattern = patterns[1,1]
-  message = patterns[1,2]
-  check_pattern(lines, pattern, "no space after comma")
-  text.block = paste(lines, collapse="\n")
-
-  find.data    <- find_function_args(parse.data=parse.data)
-  replace.data <- find2replace(find.data)
-  strip(lines, replace.data)
-
-  comments <- find_comments(file)
-  replace  <- find2replace(comments)
-  replace <- mutate(replace, end=-1L)
-  strip(lines, replace)
-  strip_comments(parse.data=parse.data) 
-  strip_comments(file) 
   
-  get_comments(lines, parse.data=parse.data)
-  extract_comments(lines)
-  
-  find_function_body(parse.data)  
-  
-  top.expressions <- subset(parse.data, parent==0)
-  expressions <- get_children(top.expressions, parse.data)
-
-  docs <- extract_comments(lines, parse.data = expressions[[4]])
-  cat(paste(docs, '\n', collapse=''))
-  
-  row <- top.expressions[1,]
-  id  <- top.expressions$id
-  get_children(id, parse.data)
-  
-  find_function_body(parse.data)
-  
-  alply(top.expressions$id, 1, find_associated, parse.data)
-    
-  pid=925L
-  ex <- 
-  subset(parse.data, line1%in% 86:87 & token.desc=="SYMBOL_FUNCTION_CALL")
-  
-  get_parent(pid, parse.data)
-  get_children(get_parent(ex$parent, parse.data))
-  get_family(pid, parse.data, 2) 
+  get_call_args(parse.data=parse.data)
 }
