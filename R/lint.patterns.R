@@ -29,7 +29,7 @@ NULL
 
 .no.exclude <- character(0)
 
-.test<-
+{# Line Length
 #' @rdname style-checks
 spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
@@ -44,7 +44,8 @@ spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
   , exclude.region = .no.exclude
   , warning = TRUE
 )
-
+}
+{# Spacing
 #' @rdname style-checks
 spacing.indentation.notabs <- list(pattern ="^\\t"
   , message = "tabs not allowed for intendation"
@@ -66,8 +67,14 @@ spacing.indentation.evenindent <- list(pattern = "^(  )*( )\\S"
 #' @rdname style-checks
 spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
   , message =  "no space after comma")
-
+spacing.twobeforecomments <- {list(
+    pattern = "^[^#]*[^\\s#]\\s{0,1}#"
+  , exclude.region = .no.exclude)
+}
+}
+{# infix spacing
 #' @rdname style-checks
+{# operator classes
 escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')
 nonesc.opp  <- c('-', '<', '>')
 base.opp <- c(escaped.opp, nonesc.opp)
@@ -76,32 +83,37 @@ logical.opp <- c('\\|', '\\|\\|', '&', '&&', '<=', '==', '!=', '>=')
 assign.opp  <- c('<-', '->', '<<-', '->>')
 special.opp <- c('%[^%]*%')
 all.opp    <- c(base.opp, extended.opp, logical.opp, assign.opp, special.opp)
-
 no.lead.rx = "[^\\s!%\\-\\+\\*\\/\\^<>=\\|&]"
 any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
-
-spacing.spacearoundinfix <- list(
+}
+{spacing.spacearoundinfix <- list(
     pattern = c(paste(no.lead.rx, '(', any.opp.rx, ')', sep='')
               , paste('(', any.opp.rx, ')', no.lead.rx, sep=''))
   , message = "needs space around infix opperators"
   , exclude.region = c("comment", "string")
 )
-spacing.spacearoundequals <- list(
+}
+{spacing.spacearoundequals <- list(
     pattern = c(paste(no.lead.rx, '(=)(?![=])', sep='')
               , paste('(?<![=!<>])(=)', no.lead.rx, sep=''))
   , message = "needs space around infix opperators"
   , exclude.region = c("call_args", "comment", "string")
 )
-spacing.twobeforecomments <- list(
-    pattern = "^[^#]*[^\\s#]\\s{0,1}#"
-  , exclude.region = .no.exclude)
+}
+}
 
 
 #' @rdname style-checks
 lint.tests <- list(
-
+    spacing.linelength.80          = spacing.linelength.80
+  , spacing.linelength.100         = spacing.linelength.100
+  , spacing.notabs                 = spacing.notabs
+  , spacing.indentation.evenindent = spacing.indentation.evenindent
+  , spacing.spaceaftercomma        = spacing.spaceaftercomma
+  , spacing.twobeforecomments      = spacing.twobeforecomments
+  , spacing.spacearoundinfix       = spacing.spacearoundinfix
+  , spacing.spacearoundequals      = spacing.spacearoundequals
 )
-
 
 
 
