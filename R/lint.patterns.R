@@ -27,26 +27,28 @@
 #' 
 NULL
 
+.no.exclude <- character(0)
+
 .test<-
 #' @rdname style-checks
 spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
   , use.lines = TRUE
-  , exclude.region = character(0)
+  , exclude.region = .no.exclude
 )
 
 #' @rdname style-checks
 spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
   , use.lines = TRUE
-  , exclude.region = character(0)
+  , exclude.region = .no.exclude
   , warning = TRUE
 )
 
 #' @rdname style-checks
 spacing.indentation.notabs <- list(pattern ="^\\t"
   , message = "tabs not allowed for intendation"
-  , exclude.region = character(0)
+  , exclude.region = .no.exclude
 )
 
 #' @rdname style-checks
@@ -66,11 +68,34 @@ spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
   , message =  "no space after comma")
 
 #' @rdname style-checks
+escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')
+nonesc.opp  <- c('-', '<', '>')
+base.opp <- c(escaped.opp, nonesc.opp)
+extended.opp <- c('\\*\\*')
+logical.opp <- c('\\|', '\\|\\|', '&', '&&', '<=', '==', '!=', '>=')
+assign.opp  <- c('<-', '->', '<<-', '->>')
+special.opp <- c('%[^%]*%')
+all.opp    <- c(base.opp, extended.opp, logical.opp, assign.opp, special.opp)
+
+no.lead.rx = "[^\\s!%\\-\\+\\*\\/\\^<>=\\|&]"
+any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
+
 spacing.spacearoundinfix <- list(
-    pattern = c("[^\\s+-=<>]([+-=<>]{1,2})", "([+-=<>]{1,2})[^\\s+-=<>]")
-  , message = "needs space aroundin fix opperators"
-  , exclude.region = c("call_args")
+    pattern = c(paste(no.lead.rx, '(', any.opp.rx, ')', sep='')
+              , paste('(', any.opp.rx, ')', no.lead.rx, sep=''))
+  , message = "needs space around infix opperators"
+  , exclude.region = c("comment", "string")
 )
+spacing.spacearoundequals <- list(
+    pattern = c(paste(no.lead.rx, '(=)(?![=])', sep='')
+              , paste('(?<![=!<>])(=)', no.lead.rx, sep=''))
+  , message = "needs space around infix opperators"
+  , exclude.region = c("call_args", "comment", "string")
+)
+spacing.twobeforecomments <- list(
+    pattern = "^[^#]*[^\\s#]\\s{0,1}#"
+  , exclude.region = .no.exclude)
+
 
 #' @rdname style-checks
 lint.tests <- list(

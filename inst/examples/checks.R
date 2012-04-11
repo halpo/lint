@@ -14,9 +14,13 @@ very.long.line.100 <- function(){print("hello world for a very long line, that k
    # odd indent
 do.call(
    with.odd.indent)
-c(1,2) #no space after comma.
+c(1,2)  # no space after comma.
 # ignore no space after comma,in comment.
 c(1,
-  2) # end of lines do not trigger check
-
-
+  2)  # end of lines do not trigger check
+  
+{  # spacing.twobeforecomments
+lm# needs two spaces
+lm # needs two spaces
+lm  # This one OK
+}
