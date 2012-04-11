@@ -28,6 +28,9 @@ with_default <- function(x, default) {
   if (length(x) > 0 && all(is.na(x))) return(default)
   x
 }
+as_row_list<- function(df, ...){
+  mlply(df, data.frame, ...)
+}
 
 lint <- function(dir='R'
   , file=list.files(dir, pattern=".R$", recursive=TRUE, full.names = T)
@@ -212,7 +215,7 @@ find2replace <- function(find.data) {
 #'  @family find-functions
   mdply(find.data, function(line1, byte1, line2, byte2, ...){
     if (line1==line2) {
-      data.frame(line=line1, start = byte1 + 1, end = byte2 + 1)
+      data.frame(line=line1, start = byte1 + 1, end = byte2)
     } else {
       nlines = line2-line1
       data.frame(
@@ -341,6 +344,27 @@ get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
 }
 }
 { # strip/extract utilities
+cull <- function(string, replace.data, value, ...) {
+  #' wrapper for \code{\link{str_sub}<-}
+   stopifnot(length(string) == 1)
+   stopifnot(length(value)  == 1)
+   if (nrow(replace.data) == 0) return(string)
+   if (nrow(replace.data) > 1){
+      if (any(replace.data$start[-1] - head(replace.data$end, -1) < 0)){
+        stop("overlapping replacement regions found")
+      }
+      collect(
+        append(list(string), rev(as_row_list(replace.data[c('start','end')])))
+      , fun = function(string, args, value, ...) {do.call(`str_sub<-`
+         , append(list(string=string, value=value), args)
+         , ...)}
+      , value=value)
+    } 
+    else {
+      do.call(`str_sub<-`, append(list(string=string, value=value)
+                                 , replace.data[c('start','end')]))
+    }    
+}
 strip <- function(lines, replace.data, replace.with=''){
 #'  Strip a region from the text
 #'  
@@ -356,13 +380,13 @@ strip <- function(lines, replace.data, replace.with=''){
 #'  
 #'  @family find-functions
 #'  @export
-  if(nrow(replace.data)==0) return(lines)
-  replace.data <- mutate(replace.data, string = lines[replace.data$line])
-  var.names <- c('string', 'start', 'end')
-  new.lines <- maply(replace.data[, var.names], `str_sub<-`, value=replace.with,
-    .expand=F)
-  lines[replace.data$line] <- new.lines
-  lines
+  if(nrow(replace.data) == 0) return(lines)
+  
+  laply(seq_along(lines), function(index, rd, with){
+    cull( string=lines[[index]]
+        , replace.data = subset(rd, rd$line == index)
+        , value = with)
+  }, rd=replace.data, with=replace.with)
 }
 extract <- function(lines, replace.data) {
 #' @rdname strip
