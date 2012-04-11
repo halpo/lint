@@ -10,7 +10,8 @@
 #' @import stringr
 #' @importFrom parser parser
 #' @importFrom harvestr noattr
-#' @collate lint.patterns.R
+#' @importFrom dostats collect
+#' @include lint.patterns.R
 #' @exportPattern ^[^\\.].*
 NULL
 
@@ -64,7 +65,9 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'),
     fun.ex.region <- as.list(exclude.region )
     ex.region.names  <- paste("strip", exclude.region[char.ex.region.idx], sep='_')
     mf <- function(...)match.fun(...)
-    for(i in which(char.ex.region.idx)) fun.ex.region[[i]] <- match.fun(ex.region.names[i])
+    for(i in which(char.ex.region.idx)) {
+      fun.ex.region[[i]] <- match.fun(ex.region.names[i])
+    }
     for(fun.ex in fun.ex.region){
       lines <- fun.ex(lines=lines)
     }
@@ -111,25 +114,21 @@ check_pattern <- function(lines
 #'   \code{\link{isTRUE}} could be useful for checking the return value.
 #' @export
 #' @family lint
-#' @importFrom plyr laply llply
 if(F){
   pattern = "^.{80}\\s*[^\\s]"
 }
   if (length(pattern)>1) {
-    sort(
-      unlist(llply(pattern, check_pattern, lines=lines, message=message, warning=warning))
-    )
+    problem.yn <- llply(pattern, grepl, lines)
+    problem.yn <- collect(problem.yn, `|`)
+  } else {
+    problem.yn    <- grepl(pattern, lines)
   }
-  reg.info <- gregexpr(pattern, lines, perl=T)
-  problem.yn <- laply(llply(reg.info, `>`, 0), any)
-  if (any(problem.yn)) {
-    problem.lines <- which(problem.yn)
-    message <- sprintf(message, 
-      regmatches(lines, reg.info)[problem.lines][[1]][[1]])
+  problem.lines <- which(problem.yn)
+  if (any(problem.lines)) {
     str <- sprintf("Lint: %s: found on lines %s", message, 
                    paste(problem.lines, collapse=', '))
     if(warning) warning(str) else message(str)
-    return(invisible(structure(problem.lines, info=reg.info[problem.lines])))
+    return(invisible(problem.lines))
   } else {
     return(invisible(TRUE))
   }
@@ -332,6 +331,7 @@ strip <- function(lines, replace.data, replace.with=''){
 #'  
 #'  @family find-functions
 #'  @export
+  if(nrow(replace.data)==0) return(lines)
   replace.data <- mutate(replace.data, string = lines[replace.data$line])
   var.names <- c('string', 'start', 'end')
   new.lines <- maply(replace.data[, var.names], `str_sub<-`, value=replace.with,
@@ -346,6 +346,7 @@ extract <- function(lines, replace.data) {
 #' the region(s) that were found, dropping everything else.
 #' 
 #' @export
+  if(nrow(replace.data)==0) return(lines)
   replace.data <- mutate(replace.data, string = lines[replace.data$line])
   var.names <- c('string', 'start', 'end')
   maply(replace.data[, var.names], `str_sub`, .expand=F)
@@ -386,7 +387,7 @@ find_comment <- function(parse.data) {
 strip_comment   <- make_stripper(find_comment)
 extract_comment <- make_extractor(find_comment)
 }
-{ # String
+{ # string
 find_string <- function(parse.data){
   subset(parse.data,
     parse.data$token.desc %in% c("STR_CONST")
@@ -395,7 +396,7 @@ find_string <- function(parse.data){
 strip_string   <- make_stripper(find_string, replace.with='""')
 extract_string <- make_extractor(find_string)
 }
-{ # Function
+{ # function
 find_function_args <- function(parse.data) {
   ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
   ddply(ftokens, "id" , function(d, ..., parse.data) {
@@ -416,7 +417,7 @@ find_function_body <- function(file, parse.data = attr(parser(file))) {
 strip_function_body <- make_stripper(find_function_body, replace.with="{}")
 extract_function_body <- make_extractor(find_function_body)
 }
-{ # Call Args
+{ # call args
 get_call_args <- function(file, parse.data=attr(parser(file))){
   call.nodes <- subset(parse.data, 
     parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
