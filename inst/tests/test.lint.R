@@ -11,7 +11,9 @@
 # 
 ################################################################################
 context("Testing lint patterns")
-
+library(testthat)
+library(lint)
+library(parser)
 test_that("Testing patterns",{
   file <- 
   check.file <- system.file("examples/checks.R", package="lint")

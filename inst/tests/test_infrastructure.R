@@ -1,4 +1,4 @@
-﻿################################################################################
+################################################################################
 # test_infrastructure.R
 # (c)2012 Andrew Redd 
 # This is file part of the lint R package, a code style check package for R.
@@ -10,7 +10,8 @@
 ################################################################################
 context("Infrastructure")
 library(parser)
-
+library(lint)
+library(testthat)
 test_that("with_default",{
   expect_that(with_default(NULL, T), is_true())
   expect_that(with_default(NULL, F), is_false())
