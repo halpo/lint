@@ -48,8 +48,21 @@ lint <- function(file, text=NULL, tests = lint.tests) {
   llply(lint.tests, dispatch_test)  
 }
 
-dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'), 
-  lines=readLines(file)) {
+dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
+  , lines=readLines(file), quiet=FALSE, warning=with_default(test$warning, FALSE)
+) {
+#' Dispatch tests to the appropriate handler
+#' @param test the test
+#' @param file the file to check
+#' @param parse.data parse data from \code{\link{parser}}
+#' @param lines the lines to evaluate, overrides file.
+#' @param quiet should the test be quiet, i.e. no messages or warnings?
+#' @param warning should messages be upgraded to warnings, ignored if 
+#'                \code{quiet=TRUE}.
+#' 
+#' @description
+#' runs a test the the appropriate handler.
+#' 
   include.region <- with_default(test$include.region, character(0))
   if (length(include.region)>=1L) {
   }
@@ -82,19 +95,31 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data'),
   
   use.lines = with_default(test$use.lines, TRUE)
   if (!use.lines) lines <- paste(lines, '\n', collapse='')
+  
+  do_message <- if(quiet){
+    function(...){}
+  } else if(warning) {
+    get("warning", mode="function")
+  } else {
+    get("message", mode="function")
+  }
+
   if (!is.null(test$pattern)) {
-    if (F) {
-      pattern <- test$pattern
-      message <- test$message
-    }
-    do.call(check_pattern, append(test, list(lines=lines)))
+    test.result <- do.call(check_pattern, append(test, list(lines=lines)))
+    if(isTRUE(test.result)) return(TRUE)
+    test.message <- with_default(test$message, test$pattern)
+    str <- sprintf("Lint: %s: found on lines %s", test.message, 
+                   paste(test.result, collapse=', '))
+    do_message(str)
+    return(invisible(test.result))
   } else
   stop("Ill-formatted check.")
+#' @return 
+#' returns the results from the test handler, which should be either a TRUE for
+#' a passed test or the lines, locations, and/or string violating the rules.
 }
-check_pattern <- function(lines
-  , pattern
-  , message=deparse(pattern)
-  , warning=FALSE
+check_pattern <- function(pattern
+  , lines
   , ...) {
 #' Check a pattern against lines
 #' 
@@ -104,8 +129,6 @@ check_pattern <- function(lines
 #' @param lines character vector of lines of text to check, output from 
 #'   \code{\link{readLines}}.
 #' @param pattern perl compatible regular expression.
-#' @param message message describing the problem being checked.
-#' @param warning should warning be issued for messages.
 #' @param check.comments should comments be checked?  If false comments are 
 #'          stripped out prior to checking.
 #' @param ... discarded.
@@ -118,19 +141,16 @@ if(F){
   pattern = "^.{80}\\s*[^\\s]"
 }
   if (length(pattern)>1) {
-    problem.yn <- llply(pattern, grepl, lines)
+    problem.yn <- llply(pattern, grepl, lines, perl=T)
     problem.yn <- collect(problem.yn, `|`)
   } else {
-    problem.yn    <- grepl(pattern, lines)
+    problem.yn    <- grepl(pattern, lines, perl=T)
   }
   problem.lines <- which(problem.yn)
   if (any(problem.lines)) {
-    str <- sprintf("Lint: %s: found on lines %s", message, 
-                   paste(problem.lines, collapse=', '))
-    if(warning) warning(str) else message(str)
-    return(invisible(problem.lines))
+    return(problem.lines)
   } else {
-    return(invisible(TRUE))
+    return(TRUE)
   }
 }
 }
@@ -426,7 +446,7 @@ get_call_args <- function(file, parse.data=attr(parser(file))){
 find_call_args <- function(file, parse.data=attr(parser(file))){
   parse2find(get_call_args(parse.data=parse.data))
 }
-strip_call_args   <- make_stripper(find_call_args, replace.with="()")
+strip_call_args   <- make_stripper(find_call_args, replace.with="")
 extract_call_args <- make_extractor(extract_call_args)
 }
 }
