@@ -29,7 +29,9 @@ with_default <- function(x, default) {
   x
 }
 
-lint <- function(file, text=NULL, tests = lint.tests) {
+lint <- function(dir='R'
+  , file=list.files(dir, pattern=".R$", recursive=TRUE, full.names = T)
+  , text=NULL, tests=lint.tests, ...) {
 #' Check a source document for stylistic errors.
 #' @param file a vector of file paths.
 #' @param text text to check
@@ -37,15 +39,18 @@ lint <- function(file, text=NULL, tests = lint.tests) {
 #' 
 #' @importFrom plyr mdply
 #' @family lint
-#' @export  
-  stopifnot(missing(file)|inherits(file, 'character'))
+#' @export
+  if (length(file) > 1) {
+    llply(file, lint, dir=NULL, tests=tests)
+  }
   if (missing(file) && !is.null(text)) {
     stopifnot(inherits(text, "character"))
     file = textConnection(text)
     on.exit(close(file))
   }
-  
-  llply(lint.tests, dispatch_test)  
+  lines <- readLines(file)
+  pd <- attr(parser(file), 'data')
+  llply(lint.tests, dispatch_test, file=file, parse.data=pd, lines=lines)  
 }
 
 dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
@@ -207,7 +212,7 @@ find2replace <- function(find.data) {
 #'  @family find-functions
   mdply(find.data, function(line1, byte1, line2, byte2, ...){
     if (line1==line2) {
-      data.frame(line=line1, start = byte1 + 1, end = byte2)
+      data.frame(line=line1, start = byte1 + 1, end = byte2 + 1)
     } else {
       nlines = line2-line1
       data.frame(
@@ -446,7 +451,7 @@ get_call_args <- function(file, parse.data=attr(parser(file))){
 find_call_args <- function(file, parse.data=attr(parser(file))){
   parse2find(get_call_args(parse.data=parse.data))
 }
-strip_call_args   <- make_stripper(find_call_args, replace.with="")
+strip_call_args   <- make_stripper(find_call_args, replace.with="NULL")
 extract_call_args <- make_extractor(extract_call_args)
 }
 }
