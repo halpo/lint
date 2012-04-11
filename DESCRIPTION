@@ -12,7 +12,8 @@ Imports:
     plyr,
     stringr,
     parser,
-    harvestr
+    harvestr,
+    dostats
 Suggests:
     testthat,
     roxygen2
