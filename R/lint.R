@@ -20,7 +20,7 @@ NULL
   # * independent function as a check.
   # * 
   # 
-} 
+}
 
 { # Core Functions
 with_default <- function(x, default) {
@@ -31,6 +31,13 @@ with_default <- function(x, default) {
 as_row_list<- function(df, ...){
   mlply(df, data.frame, ...)
 }
+{empty.find <- data.frame(
+      'line1' = integer(0L)
+    , 'col1'  = integer(0L)
+    , 'byte1' = integer(0L)
+    , 'line2' = integer(0L)
+    , 'col2'  = integer(0L)
+    , 'byte2' = integer(0L))}
 
 lint <- function(dir='R'
   , file=list.files(dir, pattern=".R$", recursive=TRUE, full.names = T)
@@ -56,21 +63,25 @@ lint <- function(dir='R'
   llply(lint.tests, dispatch_test, file=file, parse.data=pd, lines=lines)  
 }
 
-dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
-  , lines=readLines(file), quiet=FALSE, warning=with_default(test$warning, FALSE)
+dispatch_test <- function(test
+  , file=choose.file()
+  , parse.data=attr(parser(file), 'data')
+  , lines=readLines(file)
+  , quiet=FALSE
+  , warning=with_default(test$warning, FALSE)
 ) {
-#' Dispatch tests to the appropriate handler
-#' @param test the test
-#' @param file the file to check
-#' @param parse.data parse data from \code{\link{parser}}
-#' @param lines the lines to evaluate, overrides file.
-#' @param quiet should the test be quiet, i.e. no messages or warnings?
-#' @param warning should messages be upgraded to warnings, ignored if 
-#'                \code{quiet=TRUE}.
-#' 
-#' @description
-#' runs a test the the appropriate handler.
-#' 
+  #' Dispatch tests to the appropriate handler
+  #' @param test the test
+  #' @param file the file to check
+  #' @param parse.data parse data from \code{\link{parser}}
+  #' @param lines the lines to evaluate, overrides file.
+  #' @param quiet should the test be quiet, i.e. no messages or warnings?
+  #' @param warning should messages be upgraded to warnings, ignored if 
+  #'                \code{quiet=TRUE}.
+  #' 
+  #' @description
+  #' runs a test the the appropriate handler.
+  #' 
   include.region <- with_default(test$include.region, character(0))
   if (length(include.region)>=1L) {
   }
@@ -78,28 +89,21 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
   exclude.region <- with_default(test$exclude.region, c("comment", "string"))
   
   if (length(exclude.region)> 0L) {
-    char.ex.region.idx <- laply(exclude.region, inherits, 'character')
-    fun.ex.region.idx  <- laply(exclude.region, inherits, 'function')
-    if (!all(char.ex.region.idx | fun.ex.region.idx)) {
-      stop("Exclude regions must be either character strings or functions that return find data.")
-    }
-    fun.ex.region <- as.list(exclude.region )
-    ex.region.names  <- paste("strip", exclude.region[char.ex.region.idx], sep='_')
-    mf <- function(...)match.fun(...)
-    for(i in which(char.ex.region.idx)) {
-      fun.ex.region[[i]] <- match.fun(ex.region.names[i])
-    }
-    for(fun.ex in fun.ex.region){
-      lines <- fun.ex(lines=lines)
+    char.exr.idx <- laply(exclude.region, inherits, 'character')
+    fun.exr.idx  <- laply(exclude.region, inherits, 'function')
+    if (!all(char.exr.idx | fun.exr.idx)) {
+      stop("Exclude regions must be either character strings or functions.")
     }
     
     # find method
-    find.region.names  <- paste("find", exclude.region[char.ex.region.idx], sep='_')
+    find.region.names  <- paste("find", exclude.region[char.exr.idx], sep='_')
     fun.find.region <- as.list(exclude.region)
-    for(i in which(char.ex.region.idx)) fun.find.region[[i]] <- match.fun(find.region.names[i])
-    llply(fun.find.region, do.call, list(parse.data=parse.data))
-    
-  } 
+    for(i in which(char.exr.idx)) {
+      fun.find.region[[i]] <- match.fun(find.region.names[i])
+    }
+    find.results  <- llply(fun.find.region, do.call, list(parse.data=parse.data))
+    exclude.spans <- Reduce(merge_find, find.results)
+  }
   
   use.lines = with_default(test$use.lines, TRUE)
   if (!use.lines) lines <- paste(lines, '\n', collapse='')
@@ -114,21 +118,22 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
 
   if (!is.null(test$pattern)) {
     test.result <- do.call(check_pattern, append(test, list(lines=lines)))
-    if(isTRUE(test.result)) return(TRUE)
-    test.message <- with_default(test$message, test$pattern)
-    str <- sprintf("Lint: %s: found on lines %s", test.message, 
-                   paste(test.result, collapse=', '))
-    do_message(str)
-    return(invisible(test.result))
   } else
   stop("Ill-formatted check.")
-#' @return 
-#' returns the results from the test handler, which should be either a TRUE for
-#' a passed test or the lines, locations, and/or string violating the rules.
+
+  test.result <- find_diff(test.result, exclude.spans)
+  
+  if(isTRUE(test.result) || nrow(test.result) == 0) return(TRUE)
+  test.message <- with_default(test$message, test$pattern)
+  str <- sprintf("Lint: %s: found on lines %s", test.message
+                , paste(test.result$line1, collapse=', '))
+  do_message(str)
+  return(invisible(test.result$line1))
+  #' @return 
+  #' returns the results from the test handler, which should be either a TRUE for
+  #' a passed test or the lines, locations, and/or string violating the rules.
 }
-check_pattern <- function(pattern
-  , lines
-  , ...) {
+check_pattern <- function(pattern, lines, ...) {
 #' Check a pattern against lines
 #' 
 #' This is part of lint which checks lines of text for stylistic problems.
@@ -148,21 +153,43 @@ check_pattern <- function(pattern
 if(F){
   pattern = "^.{80}\\s*[^\\s]"
 }
-  if (length(pattern)>1) {
-    problem.yn <- llply(pattern, grepl, lines, perl=T)
-    problem.yn <- collect(problem.yn, `|`)
-  } else {
-    problem.yn    <- grepl(pattern, lines, perl=T)
-  }
-  problem.lines <- which(problem.yn)
-  if (any(problem.lines)) {
-    return(problem.lines)
-  } else {
+  problem.span <- llply(pattern, regexpr, lines, perl=T)
+  if (all(laply(problem.span, laply, function(x,y)all(x == y), -1L))) { 
     return(TRUE)
   }
+  find.data <- Reduce(merge_find, llply(problem.span, match2find))
+  problem.lines <- find.data$line1
+  if (length(problem.lines)) {return(find.data)} else {return(TRUE)}
 }
 }
 { # Conversion
+match2find <- function(match.data){
+  line1 <- which(laply(match.data, function(x,y)all(x >= y), 0L))
+  if (inherits(match.data, 'list')) llply(match2find, match.data)
+
+  if (length(line1) == 0) return(empty.find)
+  for(l in line1){
+    md <- match.data[[l]]
+    line1 <- l
+    col1  <- as.integer(md) - 1
+    byte1 <- col1
+    line2 <- line1
+    byte2 <- byte1 + attr(md, 'match.length')
+    col2  <- byte2
+    cbind( line1 = line1  
+              , col1  = col1 
+              , byte1 = byte1
+              , line2 = line2  
+              , byte2 = byte2
+              , col2  = col2)
+    md <- match.data[line1]
+    mutate(ldply(md, function(m){
+      col1 <- byte1 <- as.integer(m) - 1
+      col2 <- byte2 <- col1 + attr(m, 'match.length')
+      data.frame(col1, byte1, col2, byte2)
+    }), line1=line1, line2=line1)[, c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')]
+  }
+}
 parse2find <- function(parse.data) {
 #'  Convert parser Structured data to find structured data
 #'  
@@ -225,7 +252,7 @@ find2replace <- function(find.data) {
     }
   })[, -seq_len(ncol(find.data))]
 }
-do_results_overlap <- function(x, y=x) {
+`%overlaps%` <- do_results_overlap <- function(x, y=x) {
   if (nrow(x) > 1) {
     x   <- mlply(x,data.frame)
     res <- llply(x, do_results_overlap, y=y)
@@ -236,6 +263,7 @@ do_results_overlap <- function(x, y=x) {
     res <- llply(y, do_results_overlap, x=x)
     return(laply(res, noattr))
   }
+  if (nrow(x) == 0 || nrow(y) == 0) return(logical(0))
   if (x$line2 < y$line1) return(FALSE)
   if (x$line1 > y$line2) return(FALSE)
   x.start <- x$line1
@@ -255,10 +283,35 @@ do_results_overlap <- function(x, y=x) {
   if (y.start < x.end   && x.end   < y.end) return(TRUE)
   return(FALSE)
 }
-merge_find <- function(...){
+`%within%` <- is_contained_in <- function(x, y){
+  if (nrow(x) > 1) {
+    res <- llply(as_row_list(x), is_contained_in, y=y)
+    return(laply(res, noattr))
+  }
+  if (nrow(y) > 1) {
+    res <- llply(as_row_list(y), is_contained_in, x=x)
+    return(laply(res, noattr))
+  }
+  if (x$line2 < y$line1) return(FALSE)
+  if (x$line1 > y$line2) return(FALSE)
+  x.start <- x$line1
+  x.end   <- x$line2
+  y.start <- y$line1
+  y.end   <- y$line2
+  max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
+  if (max.byte>0) {
+    x.start <- x.start + x$byte1/max.byte
+    x.end   <- x.end   + x$byte2/max.byte 
+    y.start <- y.start + y$byte1/max.byte
+    y.end   <- y.end   + y$byte2/max.byte
+  }
+  if(y.start <= x.start && x.end <= y.end) return(TRUE)
+  return(FALSE)
+}
+merge_find <- function(x, y){
   # merge multiple find results
   # @param ... find results.
-  find.results <- c(list(), ...)
+  # find.results <- c(list(), ...)
   if (F) {
     parse.data=stop()
     x <- find_function_args(parse.data=parse.data)
@@ -269,26 +322,71 @@ merge_find <- function(...){
     x.idx <- overlaps[1, 1]
     y.idx <- overlaps[1, 2]
   }
+  if(nrow(x) == 0) return(y)
+  if(nrow(y) == 0) return(x)
+  keep <- names(empty.find)
+  stopifnot(all(keep %in% names(x)))
+  stopifnot(all(keep %in% names(y)))
   overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
   names(overlaps) <- c('x.idx', 'y.idx')
+  if(nrow(overlaps) == 0){
+    z <- rbind(x[, keep], y[, keep])
+    z <- z[do.call(order, z), ]
+    return(z)
+  }
   merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
     data.frame(
       line1 = min(x.row$line1, y.row$line1),
-       col1 = min( x.row$col1,  y.row$col1),
+      col1  = min( x.row$col1,  y.row$col1),
       byte1 = min(x.row$byte1, y.row$byte1),
       line2 = min(x.row$line2, y.row$line2),
-       col2 = min( x.row$col2,  y.row$col2),
+      col2  = min( x.row$col2,  y.row$col2),
       byte2 = min(x.row$byte2, y.row$byte2))
   }, x=x, y=y)
-  keep <- c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')
   new.finds <- rbind(merged[keep],
     x[-overlaps$x.idx, keep],
     y[-overlaps$y.idx, keep])
   #' @results a single \code{\link{data.frame}} with find results where overlaps
   #'  were merged
   new.finds[do.call(order, new.finds), ]
+}
+find_diff <- function(x, y=empty.find){
+  if (nrow(x) == 0) return(empty.find)
+  if (nrow(y) == 0) return(x)
+  
+  if (nrow(x) > 1) return(ldply(as_row_list(x), find_diff, y=y))
+  if (nrow(y) > 1) return(Reduce(find_diff, as_row_list(y), init=x))
+  
+  if (x %overlaps% y){
+    if(x %within% y) return(empty.find)
+    if(y %within% x) return(x)
+    
+    if (x$line1 == y$line1) {
+      if (x$byte1 < y$byte1){
+        line1 <- x$line1
+        col1  <- byte1 <- x$byte1
+        col2  <- byte2 <- y$byte1 - 1
+        line2 <- y$line1
+      }
+      else {
+        line1 <- y$line2
+        col1  <- byte1 <- x$byte2 + 1
+        col2  <- byte2 <- y$byte2
+        line2 <- x$line2        
+      }
+    }
+    if ((byte1 >= byte2) && (line1 >= line2)) return(empty.find)
+    { data.frame(
+        line1 = line1
+      , col1  = col1
+      , byte1 = byte1
+      , line2 = line2
+      , col2  = col2
+      , byte2 = byte2
+    )}
+  } else return(x)
 }
 }
 { # Family Functions
@@ -346,10 +444,10 @@ get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
 { # strip/extract utilities
 cull <- function(string, replace.data, value, ...) {
   #' wrapper for \code{\link{str_sub}<-}
-   stopifnot(length(string) == 1)
-   stopifnot(length(value)  == 1)
-   if (nrow(replace.data) == 0) return(string)
-   if (nrow(replace.data) > 1){
+  stopifnot(length(string) == 1)
+  stopifnot(length(value)  == 1)
+  if (nrow(replace.data) == 0) return(string)
+  if (nrow(replace.data) > 1){
       if (any(replace.data$start[-1] - head(replace.data$end, -1) < 0)){
         stop("overlapping replacement regions found")
       }
@@ -388,14 +486,37 @@ strip <- function(lines, replace.data, replace.with=''){
         , value = with)
   }, rd=replace.data, with=replace.with)
 }
-extract <- function(lines, replace.data) {
+pick <- function(string, replace.data, wrap="%s", collapse=';'){
+  stopifnot(length(string) == 1)
+  stopifnot(length(wrap)  == 1)
+  if (!grepl("%s", wrap))
+    stop("wrap does not contain '%s'. result will not be returned.")
+  if (nrow(replace.data) == 0) return("")
+  if (nrow(replace.data) > 1){
+    paste(
+        laply(as_row_list(replace.data), pick, string=string, wrap=wrap)
+      , collapse=collapse)
+  }
+  else {
+    sub <- do.call(str_sub, append(list(string=string), replace.data[-1]))
+    sprintf(wrap, sub)
+  }
+}
+extract <- function(lines, replace.data, wrap="%s", collapse=";") {
 #' @rdname strip
 #' @description 
 #' The \code{extract} function does the opposite of \code{strip}, it extracts
 #' the region(s) that were found, dropping everything else.
 #' 
 #' @export
-  if(nrow(replace.data)==0) return(lines)
+  if(nrow(replace.data)==0) return(rep("", length(lines)))
+  
+  laply(seq_along(lines), function(index, lines, rd, wr, co){
+    pick(string=lines[[index]]
+        , replace.data = subset(rd, rd$line ==index)
+        , wrap=wr, collapse=co) 
+  }, lines=lines, rd=replace.data, wr=wrap, co=collapse)
+  
   replace.data <- mutate(replace.data, string = lines[replace.data$line])
   var.names <- c('string', 'start', 'end')
   maply(replace.data[, var.names], `str_sub`, .expand=F)
@@ -414,17 +535,21 @@ make_stripper <- function(finder, replace.with=''){
     strip(lines, find2replace(find), replace.with=replace.with)  
   }
 }
-make_extractor <- function(finder){
-  function(
-    lines,
-    text =  paste(lines, collapse='\n'),
-    file = textConnection(text), 
-    parse.data = attr(parser(file),"data")
+make_extractor <- function(finder, pattern="%s", collapse=";"){
+  default.pattern <- pattern
+  default.collapse <- collapse
+  function( lines
+          , text =  paste(lines, collapse='\n')
+          , file = textConnection(text)
+          , parse.data = attr(parser(file),"data")
+          , pattern  = default.pattern
+          , collapse = default.collapse
   ) {
     find <- finder(parse.data = parse.data)
     extract(lines, find2replace(find))
   }
 }
+
 }
 { # Region Finders
 { # comment
@@ -446,16 +571,21 @@ strip_string   <- make_stripper(find_string, replace.with='""')
 extract_string <- make_extractor(find_string)
 }
 { # function
-find_function_args <- function(parse.data) {
+find_function_args <- function(parse.data, internal=TRUE) {
   ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
   ddply(ftokens, "id" , function(d, ..., parse.data) {
     p <- d$parent
-    function.args <- subset(parse.data, parse.data$parent == d$p & 
-      !(parse.data$token.desc %in% c('expr', 'FUNCTION')))
+    function.args <- subset(parse.data, parse.data$parent == p)
+    function.args <- if (internal) {
+      (head(function.args,-2))[-(1:2), ]
+    } else {
+      (head(function.args,-1))
+    }
+    if (nrow(function.args) ==0) return(NULL)
     parse2find(function.args)
-  }, parse.data = parse.data)
+  }, parse.data = parse.data, internal=internal)
 }
-strip_function_args   <- make_stripper(find_function_args, replace.with="()")
+strip_function_args   <- make_stripper(find_function_args, replace.with="")
 extract_function_args <- make_extractor(find_function_args)
 find_function_body <- function(file, parse.data = attr(parser(file))) {
   f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")

@@ -12,7 +12,7 @@ context("Infrastructure")
 library(parser)
 library(lint)
 library(testthat)
-test_that("with_default",{
+test_that("with_default",  {
   expect_that(with_default(NULL, T), is_true())
   expect_that(with_default(NULL, F), is_false())
   expect_that(with_default(NA, T), is_true())
@@ -29,7 +29,8 @@ test_that("check_pattern", {
     "abc",
     "xyz")
   expect_that(check_pattern(lines, "no match"), is_true())
-  expect_that(check_pattern(lines, "123"), is_equivalent_to(1L))
+  expect_that(check_pattern(lines, "123"), 
+    is_equivalent_to(list(1L, 0L, 0L, 1L, 3L, 3L)))
 })
 test_that("dispatch_test", {
   file <- 
@@ -44,10 +45,25 @@ test_that("dispatch_test", {
     "abc",
     "xyz")
   pd <- attr(parser(text=paste(lines,'\n', collapse='')), 'data')
-  expect_that(dispatch_test(list(pattern='abc'), , pd, lines, warning=T)
+  parse.data <- pd
+  expect_that(
+  dispatch_test(list(pattern='abc'), , pd, lines, warning=T)
     , gives_warning('Lint: abc: found on lines 2'))
   expect_that(dispatch_test(list(pattern="\\w{3}"), , pd, lines,  warning=T)
     , gives_warning('Lint: .*: found on lines 1, 2, 3'))
   expect_that(dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
     , gives_warning('Lint: .*: found on lines 1'))
 }) 
+test_that("match2find", {
+  {text <- '""
+x <- "another string"
+a <- 1
+'}
+  pd <- attr(parser(text=text), 'data')
+  lines <- readLines(textConnection(text))
+  match <- gregexpr('"[^"]*"', lines)
+
+  expect_that(match2find(match),
+    is_equivalent_to(find_string(parse.data=pd)[, names(empty.find)]))
+})
+

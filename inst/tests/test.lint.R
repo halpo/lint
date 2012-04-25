@@ -1,4 +1,3 @@
-
 ###############################################################################
 # test.lint.R
 # (c)2012 Andrew Redd 
@@ -20,20 +19,20 @@ test_that("Testing patterns",{
   lines <- readLines(check.file, encoding="ansi")
   pd <- attr(parser(check.file), 'data')
   
-  expect_that(dispatch_test(spacing.linelength.80, file, pd, lines, quiet=T)
-    , equals(11:12))
+  expect_that(
+      (dispatch_test(spacing.linelength.80, file, pd, lines, quiet=T))
+    , equals(10:11))
   expect_that(dispatch_test(spacing.linelength.100, file, pd, lines, quiet=T)
-    , equals(12))
+    , equals(11))
   expect_that(dispatch_test(spacing.notabs, file, pd, lines, quiet=T)
-    , equals(13))
+    , equals(12))
   expect_that(dispatch_test(spacing.indentation.evenindent, file, pd, lines, quiet=T)
-    , equals(14))
+    , equals(13))
   expect_that(dispatch_test(spacing.spaceaftercomma, file, pd, lines, quiet=T)
-    , equals(17))
+    , equals(16))
   expect_that(dispatch_test(spacing.twobeforecomments, file, pd, lines, quiet=T)
-    , equals(23:24))
+    , equals(22:23))
 })
-  
 test_that("Testing infix operators",{
   infix.file  <- system.file("examples/check-infix.R", package="lint")
   infix.lines <- readLines(infix.file)
