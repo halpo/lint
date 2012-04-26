@@ -61,7 +61,7 @@ a <- 1
 '}
   pd <- attr(parser(text=text), 'data')
   lines <- readLines(textConnection(text))
-  match <- gregexpr('"[^"]*"', lines)
+  match <- regexpr('"[^"]*"', lines)
 
   expect_that(match2find(match),
     is_equivalent_to(find_string(parse.data=pd)[, names(empty.find)]))

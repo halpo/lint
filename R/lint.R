@@ -17,7 +17,6 @@ NULL
 
 { # TODO
   # ----
-  # * independent function as a check.
   # * fix namespace exports and documentation
   # * 
 }
@@ -118,22 +117,52 @@ dispatch_test <- function(test
   }
 
   if (!is.null(test$pattern)) {
+    if(!is.null(test$fun)) stop("Test cannot define both `pattern` and `fun`")
     test.result <- do.call(check_pattern, append(test, list(lines=lines)))
-  } else stop("Ill-formatted check.")
+    test.message <- with_default(test$message, test$pattern)
+  } 
+  else if(!is.null(test$fun)) {
+    fun.result <- test$fun(file=file, lines=lines, parse.data=parse.data)
+    if (isTRUE(fun.result)) return(TRUE) else
+    if (identical(fun.result, FALSE)) {
+      test.message <- with_default(test$message, deparse(substitute(test)))
+      test.result  <- FALSE
+    } else
+    if (is.character(fun.result)) {
+      test.message <- fun.result[[1L]]
+      test.result  <- FALSE
+    } else 
+    if (is_find(fun.result)) {
+      test.message <- with_default(test$message, deparse(substitute(test)))
+      test.result <- fun.result
+    } else 
+    { # error - unknown return type
+      stop(sprintf("function returned an invalid type (%s)"
+                  , class(fun.result)[[1L]]))
+    }
+  }
+  else stop("Ill-formatted check.")
 
   if(!is.null(exclude.spans)) {
     test.result <- find_diff(test.result, exclude.spans)
   }
   
-  if(isTRUE(test.result) || nrow(test.result) == 0) return(TRUE)
-  test.message <- with_default(test$message, test$pattern)
-  str <- sprintf("Lint: %s: found on lines %s", test.message
-                , paste(test.result$line1, collapse=', '))
-  do_message(str)
-  return(invisible(test.result$line1))
   #' @return 
-  #' returns the results from the test handler, which should be either a TRUE for
-  #' a passed test or the lines, locations, and/or string violating the rules.
+  #' returns either TRUE, if the test was passed or a list of line numbers
+  #' or FALSE if the test was failed, but no additional information available.
+  if (isTRUE(test.result)) return(TRUE)
+  if (identical(test.result, FALSE)) {
+    str <- sprintf("Lint: %s", test.message)
+    do_message(str)
+    return(FALSE)
+  }
+  if (is_find(test.result)) {
+    if (nrow(test.result) == 0) return(TRUE)
+    str <- sprintf("Lint: %s: found on lines %s", test.message
+                  , paste(test.result$line1, collapse=', '))
+    do_message(str)
+    return(invisible(test.result$line1))
+  }
 }
 check_pattern <- function(pattern, lines, ...) {
 #' Check a pattern against lines
@@ -303,9 +332,11 @@ find2replace <- function(find.data) {
   return(FALSE)
 }
 merge_find <- function(x, y){
-  # merge multiple find results
-  # @param ... find results.
-  # find.results <- c(list(), ...)
+  #' merge multiple find results
+  #' 
+  #' @param x find results.
+  #' @param y find results.
+  #' @family find
   if (F) {
     parse.data=stop()
     x <- find_function_args(parse.data=parse.data)
@@ -347,6 +378,15 @@ merge_find <- function(x, y){
   new.finds[do.call(order, new.finds), ]
 }
 find_diff <- function(x, y=empty.find){
+  #' Take the difference between two find results
+  #' 
+  #' @param x find results
+  #' @param y find results
+  #' 
+  #' @family find
+  stopifnot(is_find(x))
+  stopifnot(is_find(y))
+  
   if (nrow(x) == 0) return(empty.find)
   if (nrow(y) == 0) return(x)
   
@@ -381,6 +421,21 @@ find_diff <- function(x, y=empty.find){
       , byte2 = byte2
     )}
   } else return(x)
+}
+is_find <- function(x, strict=FALSE){
+  #' check if an object can be used for find results.
+  #' 
+  #' @param x object to check
+  #' @param strict check for strict or compatible
+  #' @family find
+  if (inherits(x, 'data.frame')) {
+    if (strict) {
+      if (identical(names(empty.find), names(x))) return(TRUE)
+    } else {
+      if (all(names(empty.find) %in% names(x))) return(TRUE)
+    }
+  }
+  return(FALSE)
 }
 }
 { # Family Functions
