@@ -18,8 +18,8 @@ NULL
 { # TODO
   # ----
   # * independent function as a check.
+  # * fix namespace exports and documentation
   # * 
-  # 
 }
 
 { # Core Functions
@@ -83,8 +83,7 @@ dispatch_test <- function(test
   #' runs a test the the appropriate handler.
   #' 
   include.region <- with_default(test$include.region, character(0))
-  if (length(include.region)>=1L) {
-  }
+  if (length(include.region)>=1L) {  }
   
   exclude.region <- with_default(test$exclude.region, c("comment", "string"))
   
@@ -103,6 +102,8 @@ dispatch_test <- function(test
     }
     find.results  <- llply(fun.find.region, do.call, list(parse.data=parse.data))
     exclude.spans <- Reduce(merge_find, find.results)
+  } else {
+    exclude.spans <- NULL
   }
   
   use.lines = with_default(test$use.lines, TRUE)
@@ -118,10 +119,11 @@ dispatch_test <- function(test
 
   if (!is.null(test$pattern)) {
     test.result <- do.call(check_pattern, append(test, list(lines=lines)))
-  } else
-  stop("Ill-formatted check.")
+  } else stop("Ill-formatted check.")
 
-  test.result <- find_diff(test.result, exclude.spans)
+  if(!is.null(exclude.spans)) {
+    test.result <- find_diff(test.result, exclude.spans)
+  }
   
   if(isTRUE(test.result) || nrow(test.result) == 0) return(TRUE)
   test.message <- with_default(test$message, test$pattern)
@@ -157,38 +159,30 @@ if(F){
   if (all(laply(problem.span, laply, function(x,y)all(x == y), -1L))) { 
     return(TRUE)
   }
-  find.data <- Reduce(merge_find, llply(problem.span, match2find))
+  find.data <- Reduce(merge_find, match2find(problem.span))
   problem.lines <- find.data$line1
   if (length(problem.lines)) {return(find.data)} else {return(TRUE)}
 }
 }
 { # Conversion
 match2find <- function(match.data){
+  if (inherits(match.data, 'list')) return(llply(match.data, match2find))
   line1 <- which(laply(match.data, function(x,y)all(x >= y), 0L))
-  if (inherits(match.data, 'list')) llply(match2find, match.data)
 
   if (length(line1) == 0) return(empty.find)
-  for(l in line1){
-    md <- match.data[[l]]
-    line1 <- l
-    col1  <- as.integer(md) - 1
-    byte1 <- col1
-    line2 <- line1
-    byte2 <- byte1 + attr(md, 'match.length')
-    col2  <- byte2
-    cbind( line1 = line1  
-              , col1  = col1 
-              , byte1 = byte1
-              , line2 = line2  
-              , byte2 = byte2
-              , col2  = col2)
-    md <- match.data[line1]
-    mutate(ldply(md, function(m){
-      col1 <- byte1 <- as.integer(m) - 1
-      col2 <- byte2 <- col1 + attr(m, 'match.length')
-      data.frame(col1, byte1, col2, byte2)
-    }), line1=line1, line2=line1)[, c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')]
-  }
+  md   <- match.data[line1]
+  len  <- attr(match.data, 'match.length')[line1]
+  col1  <- as.integer(md) - 1
+  byte1 <- col1
+  line2 <- line1
+  byte2 <- byte1 + len
+  col2  <- byte2
+  data.frame( line1 = line1  
+            , col1  = col1 
+            , byte1 = byte1
+            , line2 = line2  
+            , byte2 = byte2
+            , col2  = col2)[, names(empty.find)]
 }
 parse2find <- function(parse.data) {
 #'  Convert parser Structured data to find structured data
@@ -328,12 +322,12 @@ merge_find <- function(x, y){
   stopifnot(all(keep %in% names(x)))
   stopifnot(all(keep %in% names(y)))
   overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
-  names(overlaps) <- c('x.idx', 'y.idx')
   if(nrow(overlaps) == 0){
     z <- rbind(x[, keep], y[, keep])
     z <- z[do.call(order, z), ]
     return(z)
   }
+  names(overlaps) <- c('x.idx', 'y.idx')
   merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
