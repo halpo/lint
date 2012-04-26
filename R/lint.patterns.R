@@ -12,7 +12,9 @@
 #' A test consists of a names list of attributes.
 #' \enumerate{
 #'   \item \code{pattern} is a pcre compatible \link[base:regex]{regular
-#'         expression} that is tested. Can be a character vector of expressions.
+#'         expression} that is tested. Can be a character vector of expressions
+#'   \item OR \code{fun} which provides a function that can evaluate the 
+#'         presence of the rule see section {using functions}
 #'   \item \code{message} The message to be displayed.
 #'   \item \code{include.region} lists regions to restrict the search to.
 #'         Can be a character vector specifying the known regions, or a list of 
@@ -24,7 +26,28 @@
 #'   \item \code{warning=F}
 #' }
 #' 
+#' @section Using functions
+#' lint is very flexible for checking and defining style rules.
+#' independent functions can be provided that extend the capabilities 
+#' for checking styl rules.  Each function must be able to accept the following
+#' arguments
+#' \enumerate{
+#'    \item \code{file} the file name as an absulute location
+#'    \item \code{lines} the lines of \code{file}.
+#'    \item \code{parse.data} the parse data.
+#' }
+#' It is highly recommended that the function also accept extra arguments 
+#' through \code{...} to preserve forward compatibility.  
+#' Use parse.data, and lines wherever possible.
 #' 
+#' The function must return either properly formated 
+#' \link[parse2find]{find data}, TRUE if no problems were found,
+#' or FALSE, where only an error was found but no additional information 
+#' provided.  Passing is checked with \code{\link{isTRUE}}.
+#' Find results will filtered through regions identified by 
+#' \code{exclude.region} and include.regions.
+#' 
+#' @include lint.R
 NULL
 
 .no.exclude <- character(0)
@@ -101,7 +124,33 @@ any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
 )
 }
 }
-
+{# Assignment
+{assign.noeqassign <- list(
+  fun = function(parse.data, ...){
+    finds <- subset(parse.data, token.desc == "EQ_ASSIGN")
+    if (nrow(finds) >= 1) return(finds[, names(empty.find)])
+    return(TRUE)
+  }
+  , message = "'=' not allowed for assignment, use '<-'"
+  , exclude.region = .no.exclude)
+}
+{assign.norightassign <- list(
+  fun = function(parse.data, ...){
+    finds <- subset(parse.data, token.desc == "RIGHT_ASSIGN")
+    if (nrow(finds) >= 1) return(finds[, names(empty.find)])
+    return(TRUE)
+  }
+  , message = "Right assignment '->' not allowed")
+}
+{assign.nodoubleassign <- list(
+  fun = function(parse.data, ...){
+    finds <- subset(parse.data, text %in% c("<<-", "->>"))
+    if (nrow(finds) >= 1) return(finds[, names(empty.find)])
+    return(TRUE)
+  }
+  , message = "Scope breaking assignment '<<-' not allowed")
+}
+}
 
 #' @rdname style-checks
 lint.tests <- list(

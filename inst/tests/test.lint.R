@@ -17,6 +17,7 @@ test_that("Testing patterns",{
   file <- 
   check.file <- system.file("examples/checks.R", package="lint")
   lines <- readLines(check.file, encoding="ansi")
+  parse.data <-
   pd <- attr(parser(check.file), 'data')
   
   expect_that(
@@ -46,3 +47,31 @@ test_that("Testing infix operators",{
                 , parse.data=infix.pd, lines=infix.lines, quiet=T)
               , equals(91:93))
 })
+test_that("Assignment tests", {
+  text <- {
+"x <- 1
+x = 1
+plot(x=1)
+1 -> x
+x <<- 1
+1 ->> x
+"}
+  pd <- attr(parser(text=text), 'data')
+  lines <- readLines(textConnection(text))
+  match <- regexpr('"[^"]*"', lines)
+
+  expect_that(
+      (dispatch_test(assign.noeqassign, parse.data=pd, lines=lines, quiet=T))
+    , equals(2))
+  expect_that(
+      (dispatch_test(assign.norightassign, parse.data=pd, lines=lines, quiet=T))
+    , equals(4))
+  expect_that(
+      (dispatch_test(assign.nodoubleassign, parse.data=pd, lines=lines, quiet=T))
+    , equals(5:6))
+
+
+
+
+})
+
