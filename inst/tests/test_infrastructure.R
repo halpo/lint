@@ -53,6 +53,24 @@ test_that("dispatch_test", {
     , gives_warning('Lint: .*: found on lines 1, 2, 3'))
   expect_that(dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
     , gives_warning('Lint: .*: found on lines 1'))
+  expect_that(dispatch_test(list(fun=function(...){T}), , pd, lines)
+    , is_true())
+  expect_that(dispatch_test(list(fun=function(...){F}), , pd, lines)
+    , shows_message())
+  expect_that(dispatch_test(list(fun=function(...){F}), , pd, lines, quiet=T)
+    , is_false())
+  hw <- function(...){"hello world"}
+  expect_that(dispatch_test(list(fun=hw), , pd, lines)
+    , shows_message("Lint: hello world"))
+  expect_that(dispatch_test(list(fun=hw, warning=T), , pd, lines)
+    , gives_warning("Lint: hello world"))
+  expect_that(dispatch_test(list(fun=function(...){pd}, warning=T), , pd, lines)
+    , gives_warning())
+  test <- list(fun = function(parse.data, ...){
+    subset(parse.data, token.desc == 'NUM_CONST')
+  })
+  expect_that(dispatch_test(test, , pd, lines, quiet=T)
+    , equals(1))
 }) 
 test_that("match2find", {
   {text <- '""

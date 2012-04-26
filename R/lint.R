@@ -143,10 +143,6 @@ dispatch_test <- function(test
   }
   else stop("Ill-formatted check.")
 
-  if(!is.null(exclude.spans)) {
-    test.result <- find_diff(test.result, exclude.spans)
-  }
-  
   #' @return 
   #' returns either TRUE, if the test was passed or a list of line numbers
   #' or FALSE if the test was failed, but no additional information available.
@@ -157,6 +153,9 @@ dispatch_test <- function(test
     return(FALSE)
   }
   if (is_find(test.result)) {
+    if(!is.null(exclude.spans)) {
+      test.result <- find_diff(test.result, exclude.spans)
+    }
     if (nrow(test.result) == 0) return(TRUE)
     str <- sprintf("Lint: %s: found on lines %s", test.message
                   , paste(test.result$line1, collapse=', '))
