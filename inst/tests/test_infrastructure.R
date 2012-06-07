@@ -1,4 +1,4 @@
-﻿################################################################################
+################################################################################
 # test_infrastructure.R
 # (c)2012 Andrew Redd 
 # This is file part of the lint R package, a code style check package for R.

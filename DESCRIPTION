@@ -13,7 +13,8 @@ Imports:
     plyr,
     stringr,
     parser,
-    harvestr
+    harvestr,
+    dostats
 Suggests:
     testthat,
     roxygen2
@@ -21,4 +22,3 @@ License: GPL (>=3)
 Collate:
     'lint.patterns.R'
     'lint.R'
-    'docs.R'

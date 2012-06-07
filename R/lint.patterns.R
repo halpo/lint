@@ -25,11 +25,11 @@
 #' }
 #' 
 #' 
-NULL
+#' @exportPattern ^spacing\\.[^\\.].*
+#' NULL
 
 .no.exclude <- character(0)
 
-.test<-
 #' @rdname style-checks
 spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
@@ -69,29 +69,51 @@ spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
 
 #' @rdname style-checks
 escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')
+
+#' @rdname style-checks
 nonesc.opp  <- c('-', '<', '>')
+
+#' @rdname style-checks
 base.opp <- c(escaped.opp, nonesc.opp)
+
+#' @rdname style-checks
 extended.opp <- c('\\*\\*')
+
+#' @rdname style-checks
 logical.opp <- c('\\|', '\\|\\|', '&', '&&', '<=', '==', '!=', '>=')
+
+#' @rdname style-checks
 assign.opp  <- c('<-', '->', '<<-', '->>')
+
+#' @rdname style-checks
 special.opp <- c('%[^%]*%')
+
+#' @rdname style-checks
 all.opp    <- c(base.opp, extended.opp, logical.opp, assign.opp, special.opp)
 
+#' @rdname style-checks
 no.lead.rx = "[^\\s!%\\-\\+\\*\\/\\^<>=\\|&]"
+
+#' @rdname style-checks
 any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
 
+#' @rdname style-checks
 spacing.spacearoundinfix <- list(
     pattern = c(paste(no.lead.rx, '(', any.opp.rx, ')', sep='')
               , paste('(', any.opp.rx, ')', no.lead.rx, sep=''))
   , message = "needs space around infix opperators"
   , exclude.region = c("comment", "string")
 )
+
+#' @rdname style-checks
 spacing.spacearoundequals <- list(
     pattern = c(paste(no.lead.rx, '(=)(?![=])', sep='')
               , paste('(?<![=!<>])(=)', no.lead.rx, sep=''))
   , message = "needs space around infix opperators"
   , exclude.region = c("call_args", "comment", "string")
 )
+
+#' @rdname style-checks
 spacing.twobeforecomments <- list(
     pattern = "^[^#]*[^\\s#]\\s{0,1}#"
   , exclude.region = .no.exclude)

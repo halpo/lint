@@ -12,7 +12,6 @@
 #' @importFrom harvestr noattr
 #' @importFrom dostats collect
 #' @include lint.patterns.R
-#' @exportPattern ^[^\\.].*
 NULL
 
 { # TODO
@@ -22,14 +21,19 @@ NULL
   # 
 } 
 
-{ # Core Functions
+#{ # Core Functions
+
+#' Look for an argument.
+#' 
+#' @param x an object
+#' @param default the default value
+#' @return If x is neither NULL nor NA then x otherwise the default
 with_default <- function(x, default) {
   if (all(is.null(x))) return(default)
   if (length(x) > 0 && all(is.na(x))) return(default)
   x
 }
 
-lint <- function(file, text=NULL, tests = lint.tests) {
 #' Check a source document for stylistic errors.
 #' @param file a vector of file paths.
 #' @param text text to check
@@ -37,7 +41,8 @@ lint <- function(file, text=NULL, tests = lint.tests) {
 #' 
 #' @importFrom plyr mdply
 #' @family lint
-#' @export  
+#' @export
+lint <- function(file, text=NULL, tests = lint.tests) {
   stopifnot(missing(file)|inherits(file, 'character'))
   if (missing(file) && !is.null(text)) {
     stopifnot(inherits(text, "character"))
@@ -48,9 +53,6 @@ lint <- function(file, text=NULL, tests = lint.tests) {
   llply(lint.tests, dispatch_test)  
 }
 
-dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
-  , lines=readLines(file), quiet=FALSE, warning=with_default(test$warning, FALSE)
-) {
 #' Dispatch tests to the appropriate handler
 #' @param test the test
 #' @param file the file to check
@@ -63,6 +65,13 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
 #' @description
 #' runs a test the the appropriate handler.
 #' 
+#' @return 
+#' returns the results from the test handler, which should be either a TRUE for
+#' a passed test or the lines, locations, and/or string violating the rules.
+#' @export
+dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
+  , lines=readLines(file), quiet=FALSE, warning=with_default(test$warning, FALSE)
+) {
   include.region <- with_default(test$include.region, character(0))
   if (length(include.region)>=1L) {
   }
@@ -114,13 +123,8 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     return(invisible(test.result))
   } else
   stop("Ill-formatted check.")
-#' @return 
-#' returns the results from the test handler, which should be either a TRUE for
-#' a passed test or the lines, locations, and/or string violating the rules.
 }
-check_pattern <- function(pattern
-  , lines
-  , ...) {
+   
 #' Check a pattern against lines
 #' 
 #' This is part of lint which checks lines of text for stylistic problems.
@@ -129,14 +133,15 @@ check_pattern <- function(pattern
 #' @param lines character vector of lines of text to check, output from 
 #'   \code{\link{readLines}}.
 #' @param pattern perl compatible regular expression.
-#' @param check.comments should comments be checked?  If false comments are 
-#'          stripped out prior to checking.
 #' @param ... discarded.
 #' @return returns an integer vector of the problem lines if problems were 
 #'   found. otherwise returns TRUE if the lines pass the check. 
 #'   \code{\link{isTRUE}} could be useful for checking the return value.
 #' @export
 #' @family lint
+check_pattern <- function(pattern
+  , lines
+  , ...) {
 if(F){
   pattern = "^.{80}\\s*[^\\s]"
 }
@@ -153,7 +158,7 @@ if(F){
     return(TRUE)
   }
 }
-}
+#}#Core Functions
 { # Conversion
 parse2find <- function(parse.data) {
 #'  Convert parser Structured data to find structured data
