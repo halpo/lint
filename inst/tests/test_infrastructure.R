@@ -10,6 +10,7 @@
 ################################################################################
 context("Infrastructure")
 library(parser)
+library(lint)
 
 test_that("with_default",{
   expect_that(with_default(NULL, T), is_true())
@@ -47,6 +48,21 @@ test_that("dispatch_test", {
     , gives_warning('Lint: abc: found on lines 2'))
   expect_that(dispatch_test(list(pattern="\\w{3}"), , pd, lines,  warning=T)
     , gives_warning('Lint: .*: found on lines 1, 2, 3'))
-  expect_that(dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
+  expect_that(
+      dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
     , gives_warning('Lint: .*: found on lines 1'))
-}) 
+})
+
+test_that("lint", {
+    file <- 
+    check.file <- system.file("examples/checks.R", package="lint")
+        
+    lint.tests <- list(
+        spacing.twobeforecomments=spacing.twobeforecomments
+        , spacing.spacearoundequals=spacing.spacearoundequals
+        , spacing.indentation.notabs=spacing.indentation.notabs
+        , spacing.linelength.80=spacing.linelength.80)
+    lint(check.file, lint.tests)
+    )
+    
+})

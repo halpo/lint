@@ -116,12 +116,17 @@ spacing.spacearoundequals <- list(
 #' @rdname style-checks
 spacing.twobeforecomments <- list(
     pattern = "^[^#]*[^\\s#]\\s{0,1}#"
-  , exclude.region = .no.exclude)
+  , exclude.region = .no.exclude
+  , message = "needs two spaces spacing before inline comments")
 
 
 #' @rdname style-checks
+#' @export
 lint.tests <- list(
-
+    spacing.twobeforecomments
+  , spacing.spacearoundequals
+  , spacing.indentation.notabs
+  , spacing.linelength.80
 )
 
 

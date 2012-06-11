@@ -28,6 +28,7 @@ NULL
 #' @param x an object
 #' @param default the default value
 #' @return If x is neither NULL nor NA then x otherwise the default
+#' @export
 with_default <- function(x, default) {
   if (all(is.null(x))) return(default)
   if (length(x) > 0 && all(is.na(x))) return(default)
@@ -39,7 +40,6 @@ with_default <- function(x, default) {
 #' @param text text to check
 #' @param tests The list of tests to use to check.
 #' 
-#' @importFrom plyr mdply
 #' @family lint
 #' @export
 lint <- function(file, text=NULL, tests = lint.tests) {
@@ -50,7 +50,11 @@ lint <- function(file, text=NULL, tests = lint.tests) {
     on.exit(close(file))
   }
   
-  llply(lint.tests, dispatch_test)  
+  parse.data=attr(parser(file), 'data')
+  lines=readLines(file)
+  
+  llply(lint.tests, redirf(dispatch_test), file=file
+        , parse.data=parse.data, lines=lines)  
 }
 
 #' Dispatch tests to the appropriate handler
@@ -85,10 +89,13 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
       stop("Exclude regions must be either character strings or functions that return find data.")
     }
     fun.ex.region <- as.list(exclude.region )
-    ex.region.names  <- paste("strip", exclude.region[char.ex.region.idx], sep='_')
+    ex.region.names  <- paste("find", exclude.region[char.ex.region.idx], sep='_')
     mf <- function(...)match.fun(...)
     for(i in which(char.ex.region.idx)) {
-      fun.ex.region[[i]] <- match.fun(ex.region.names[i])
+        fun.ex.region[[i]] <- try(get(ex.region.names[i], mode = 'function'
+                                      , inherits=T), silent=TRUE)
+        if(inherits(fun.ex.region[[i]], 'try-error'))
+            fun.ex.region[[i]] <- match.fun(ex.region.names[i])
     }
     for(fun.ex in fun.ex.region){
       lines <- fun.ex(lines=lines)
@@ -97,8 +104,14 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     # find method
     find.region.names  <- paste("find", exclude.region[char.ex.region.idx], sep='_')
     fun.find.region <- as.list(exclude.region)
-    for(i in which(char.ex.region.idx)) fun.find.region[[i]] <- match.fun(find.region.names[i])
-    llply(fun.find.region, do.call, list(parse.data=parse.data))
+    for(i in which(char.ex.region.idx)) {
+        fun.find.region[[i]] <- try(get(ex.region.names[i], mode = 'function'
+                                      , inherits=T), silent=TRUE)
+        if(inherits(fun.find.region[[i]], 'try-error'))
+            fun.find.region[[i]] <- match.fun(ex.region.names[i])
+    }
+    ex.regions <- 
+        llply(fun.find.region, do.call, list(parse.data=parse.data))
     
   } 
   
@@ -158,7 +171,7 @@ if(F){
     return(TRUE)
   }
 }
-#}#Core Functions
+#} # Core Functions
 { # Conversion
 parse2find <- function(parse.data) {
 #'  Convert parser Structured data to find structured data
@@ -287,7 +300,7 @@ merge_find <- function(...){
   #'  were merged
   new.finds[do.call(order, new.finds), ]
 }
-}
+} # Conversion
 { # Family Functions
 get_child <- function(id, parse.data, nlevels=-1L, include.parent=TRUE) {
 #'  @rdname get_children
@@ -339,7 +352,7 @@ get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
   }
   get_child(parents, parse.data, nchildren)
 }
-}
+} # Family Functions
 { # strip/extract utilities
 strip <- function(lines, replace.data, replace.with=''){
 #'  Strip a region from the text
@@ -401,7 +414,7 @@ make_extractor <- function(finder){
     extract(lines, find2replace(find))
   }
 }
-}
+} # strip/extract utilities
 { # Region Finders
 { # comment
 find_comment <- function(parse.data) {
@@ -411,7 +424,7 @@ find_comment <- function(parse.data) {
 }
 strip_comment   <- make_stripper(find_comment)
 extract_comment <- make_extractor(find_comment)
-}
+} # comment
 { # string
 find_string <- function(parse.data){
   subset(parse.data,
@@ -420,7 +433,7 @@ find_string <- function(parse.data){
 }
 strip_string   <- make_stripper(find_string, replace.with='""')
 extract_string <- make_extractor(find_string)
-}
+} # string
 { # function
 find_function_args <- function(parse.data) {
   ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
@@ -441,7 +454,7 @@ find_function_body <- function(file, parse.data = attr(parser(file))) {
 }
 strip_function_body <- make_stripper(find_function_body, replace.with="{}")
 extract_function_body <- make_extractor(find_function_body)
-}
+} # function
 { # call args
 get_call_args <- function(file, parse.data=attr(parser(file))){
   call.nodes <- subset(parse.data, 
@@ -453,8 +466,8 @@ find_call_args <- function(file, parse.data=attr(parser(file))){
 }
 strip_call_args   <- make_stripper(find_call_args, replace.with="")
 extract_call_args <- make_extractor(extract_call_args)
-}
-}
+} # call args
+}# Region Finders
 if (F) {  # testing code
   using(plyr, stringr, parser, harvestr, compiler)
   file <- normalizePath("lint.R")

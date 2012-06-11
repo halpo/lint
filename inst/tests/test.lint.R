@@ -10,7 +10,7 @@
 # 
 # 
 ################################################################################
-context("Testing lint patterns")
+context("Patterns")
 
 test_that("Testing patterns",{
   file <- 
@@ -45,3 +45,5 @@ test_that("Testing infix operators",{
                 , parse.data=infix.pd, lines=infix.lines, quiet=T)
               , equals(91:93))
 })
+
+
