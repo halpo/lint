@@ -1,0 +1,6 @@
+lint 0.1
+--------
+
+* Initial 'Alpha' release.
+* Support for Pattern based checks
+* initial suite of spacing checks available.

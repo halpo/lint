@@ -11,8 +11,8 @@
 context("Infrastructure")
 library(parser)
 library(lint)
-library(testthat)
-test_that("with_default",  {
+
+test_that("with_default",{
   expect_that(with_default(NULL, T), is_true())
   expect_that(with_default(NULL, F), is_false())
   expect_that(with_default(NA, T), is_true())
@@ -29,8 +29,7 @@ test_that("check_pattern", {
     "abc",
     "xyz")
   expect_that(check_pattern(lines, "no match"), is_true())
-  expect_that(check_pattern(lines, "123"), 
-    is_equivalent_to(list(1L, 0L, 0L, 1L, 3L, 3L)))
+  expect_that(check_pattern(lines, "123"), is_equivalent_to(1L))
 })
 test_that("dispatch_test", {
   file <- 
@@ -45,43 +44,25 @@ test_that("dispatch_test", {
     "abc",
     "xyz")
   pd <- attr(parser(text=paste(lines,'\n', collapse='')), 'data')
-  parse.data <- pd
-  expect_that(
-  dispatch_test(list(pattern='abc'), , pd, lines, warning=T)
+  expect_that(dispatch_test(list(pattern='abc'), , pd, lines, warning=T)
     , gives_warning('Lint: abc: found on lines 2'))
   expect_that(dispatch_test(list(pattern="\\w{3}"), , pd, lines,  warning=T)
     , gives_warning('Lint: .*: found on lines 1, 2, 3'))
-  expect_that(dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
+  expect_that(
+      dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
     , gives_warning('Lint: .*: found on lines 1'))
-  expect_that(dispatch_test(list(fun=function(...){T}), , pd, lines)
-    , is_true())
-  expect_that(dispatch_test(list(fun=function(...){F}), , pd, lines)
-    , shows_message())
-  expect_that(dispatch_test(list(fun=function(...){F}), , pd, lines, quiet=T)
-    , is_false())
-  hw <- function(...){"hello world"}
-  expect_that(dispatch_test(list(fun=hw), , pd, lines)
-    , shows_message("Lint: hello world"))
-  expect_that(dispatch_test(list(fun=hw, warning=T), , pd, lines)
-    , gives_warning("Lint: hello world"))
-  expect_that(dispatch_test(list(fun=function(...){pd}, warning=T), , pd, lines)
-    , gives_warning())
-  test <- list(fun = function(parse.data, ...){
-    subset(parse.data, token.desc == 'NUM_CONST')
-  })
-  expect_that(dispatch_test(test, , pd, lines, quiet=T)
-    , equals(1))
-}) 
-test_that("match2find", {
-  {text <- '""
-x <- "another string"
-a <- 1
-'}
-  pd <- attr(parser(text=text), 'data')
-  lines <- readLines(textConnection(text))
-  match <- regexpr('"[^"]*"', lines)
-
-  expect_that(match2find(match),
-    is_equivalent_to(find_string(parse.data=pd)[, names(empty.find)]))
 })
 
+test_that("lint", {
+    file <- 
+    check.file <- system.file("examples/checks.R", package="lint")
+        
+    lint.tests <- list(
+        spacing.twobeforecomments=spacing.twobeforecomments
+        , spacing.spacearoundequals=spacing.spacearoundequals
+        , spacing.indentation.notabs=spacing.indentation.notabs
+        , spacing.linelength.80=spacing.linelength.80)
+    lint(check.file, lint.tests)
+    )
+    
+})

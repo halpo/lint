@@ -1,3 +1,4 @@
+
 ###############################################################################
 # test.lint.R
 # (c)2012 Andrew Redd 
@@ -9,31 +10,28 @@
 # 
 # 
 ################################################################################
-context("Testing lint patterns")
-library(testthat)
-library(lint)
-library(parser)
+context("Patterns")
+
 test_that("Testing patterns",{
   file <- 
   check.file <- system.file("examples/checks.R", package="lint")
   lines <- readLines(check.file, encoding="ansi")
-  parse.data <-
   pd <- attr(parser(check.file), 'data')
   
-  expect_that(
-      (dispatch_test(spacing.linelength.80, file, pd, lines, quiet=T))
-    , equals(10:11))
+  expect_that(dispatch_test(spacing.linelength.80, file, pd, lines, quiet=T)
+    , equals(11:12))
   expect_that(dispatch_test(spacing.linelength.100, file, pd, lines, quiet=T)
-    , equals(11))
-  expect_that(dispatch_test(spacing.notabs, file, pd, lines, quiet=T)
     , equals(12))
-  expect_that(dispatch_test(spacing.indentation.evenindent, file, pd, lines, quiet=T)
+  expect_that(dispatch_test(spacing.notabs, file, pd, lines, quiet=T)
     , equals(13))
+  expect_that(dispatch_test(spacing.indentation.evenindent, file, pd, lines, quiet=T)
+    , equals(14))
   expect_that(dispatch_test(spacing.spaceaftercomma, file, pd, lines, quiet=T)
-    , equals(16))
+    , equals(17))
   expect_that(dispatch_test(spacing.twobeforecomments, file, pd, lines, quiet=T)
-    , equals(22:23))
+    , equals(23:24))
 })
+  
 test_that("Testing infix operators",{
   infix.file  <- system.file("examples/check-infix.R", package="lint")
   infix.lines <- readLines(infix.file)
@@ -47,31 +45,5 @@ test_that("Testing infix operators",{
                 , parse.data=infix.pd, lines=infix.lines, quiet=T)
               , equals(91:93))
 })
-test_that("Assignment tests", {
-  text <- {
-"x <- 1
-x = 1
-plot(x=1)
-1 -> x
-x <<- 1
-1 ->> x
-"}
-  pd <- attr(parser(text=text), 'data')
-  lines <- readLines(textConnection(text))
-  match <- regexpr('"[^"]*"', lines)
 
-  expect_that(
-      (dispatch_test(assign.noeqassign, parse.data=pd, lines=lines, quiet=T))
-    , equals(2))
-  expect_that(
-      (dispatch_test(assign.norightassign, parse.data=pd, lines=lines, quiet=T))
-    , equals(4))
-  expect_that(
-      (dispatch_test(assign.nodoubleassign, parse.data=pd, lines=lines, quiet=T))
-    , equals(5:6))
-
-
-
-
-})
 
