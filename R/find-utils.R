@@ -95,7 +95,7 @@ make_extractor <- function(finder){
   }
 }
 make_class_finder <- function(classes){
-    structure(function(parse.data, ...) {
+    structure(function(..., parse.data) {
         subset(parse.data, parse.data$token.desc %in% classes)
     }, classes=classes)
 }
