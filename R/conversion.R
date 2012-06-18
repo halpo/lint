@@ -122,9 +122,9 @@ find2replace <- function(find.data) {
 #' @rdname conversion
 #' @export
 locate2find <- function(loc) {
-    if(all(is.na(loc$start)))return(empty.find)
-    if(!inherits(loc, .data.frame))
+    if(!inherits(loc, 'data.frame'))
         loc <- as.data.frame(loc)
+    if(all(is.na(loc$start)))return(empty.find)
     mutate(loc
       , line1 = seq_along(start)
       , line2 = seq_along(start)
@@ -134,14 +134,15 @@ locate2find <- function(loc) {
       , byte2 = end)[!is.na(loc$start), names(empty.find)]
 }
 
-
 do_results_overlap <- function(x, y=x) {
   if (nrow(x) > 1) {
+    force(y)
     x   <- mlply(x,data.frame)
-    res <- llply(x, do_results_overlap, y=y)
+    res <- llply(x, do_results_overlap, y)
     return(laply(res, noattr))
   }
   if (nrow(y) > 1) {
+    force(x)
     y <- mlply(y,data.frame)
     res <- llply(y, do_results_overlap, x=x)
     return(laply(res, noattr))
@@ -159,30 +160,36 @@ do_results_overlap <- function(x, y=x) {
     y.start <- y.start + y$byte1/max.byte
     y.end   <- y.end   + y$byte2/max.byte
   }
-  if (x.start < y.start && y.start < x.end) return(TRUE)
-  if (x.start < y.end   && y.end   < x.end) return(TRUE)
-  if (y.start < x.start && x.start < y.end) return(TRUE)
-  if (y.start < x.end   && x.end   < y.end) return(TRUE)
+  if (x.start <= y.start && y.start <= x.end) return(TRUE)
+  if (x.start <= y.end   && y.end   <= x.end) return(TRUE)
+  if (y.start <= x.start && x.start <= y.end) return(TRUE)
+  if (y.start <= x.end   && x.end   <= y.end) return(TRUE)
+  
   return(FALSE)
 }
 
 merge_find <- function(...){
   # merge multiple find results
   # @param ... find results.
-  find.results <- c(list(), ...)
-  if (F) {
-    parse.data=stop()
-    x <- find_function_args(parse.data=parse.data)
-    y <- find_call_args(parse.data=parse.data)
-    x <- x[1,]
-    y <- y[1,]
-    
-    x.idx <- overlaps[1, 1]
-    y.idx <- overlaps[1, 2]
+  find.results <- list(...)
+  if(length(find.results) == 0) { return(empty.find)
+  } 
+  else if(length(find.results) == 1){
+    if(valid_find(find.results[[1]], T, T))
+      return(find.results[[1]])
+    else stop("argument is not a strict find result.")
   }
-  overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
-  names(overlaps) <- c('x.idx', 'y.idx')
-  merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
+  else if(length(find.results) > 2){
+    return(Reduce(merge_find, find.results))
+  } 
+  else {
+    x <- find.results[[1]]
+    y <- find.results[[2]]
+    if(nrow(y) == 0) return(x)
+    if(nrow(x) == 0) return(y)
+    overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
+    names(overlaps) <- c('x.idx', 'y.idx')
+    merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
     data.frame(
@@ -192,12 +199,26 @@ merge_find <- function(...){
       line2 = min(x.row$line2, y.row$line2),
        col2 = min( x.row$col2,  y.row$col2),
       byte2 = min(x.row$byte2, y.row$byte2))
-  }, x=x, y=y)
-  keep <- c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')
-  new.finds <- rbind(merged[keep],
+    }, x=x, y=y)
+    keep <- c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')
+    new.finds <- rbind(merged[keep],
     x[-overlaps$x.idx, keep],
     y[-overlaps$y.idx, keep])
-  #' @results a single \code{\link{data.frame}} with find results where overlaps
-  #'  were merged
-  new.finds[do.call(order, new.finds), ]
+    #' @results a single \code{\link{data.frame}} with find results where 
+    #'  overlaps were merged
+    new.finds[do.call(order, new.finds), ]
+  }
 }
+
+valid_find <- function(x, strict=FALSE, extended=TRUE){(
+    is(x,'data.frame')
+ && if(strict)
+        identical(names(empty.find), names(x))
+    else
+        all(names(empty.find) %in% names(x))
+ && if(extended)
+        !any(do_results_overlap(x) & !diag(T, nrow(x), nrow(x)))
+    else TRUE
+)}
+
+

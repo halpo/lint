@@ -1,14 +1,29 @@
-###############################################################################
+{############################################################################### 
 # test_find.R
-# (c)2012 Andrew Redd 
-# This is file part of the lint R package, a code style check package for R.
+# This file is part of the R package lint.
+# 
+# Copyright 2012 Andrew Redd
+# Date: 6/16/2012
 # 
 # DESCRIPTION
-# -----------
+# ===========
 # This file contains the unit tests for the find, strip, extract functions.
 # 
+# LICENSE
+# ========
+# lint is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software 
+# Foundation, either version 3 of the License, or (at your option) any later 
+# version.
 # 
-################################################################################
+# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along with 
+# this program. If not, see http://www.gnu.org/licenses/.
+# 
+}###############################################################################
 library(testthat)
 library(lint)
 context("find/strip/extract")
@@ -30,11 +45,8 @@ hello # there
     stringsAsFactors = FALSE)}
   
   pd <- attr(parser(text=text), 'data')
-  expect_that((find_comment(pd))[,names(comment.locations)]
+  expect_that(find_comment(pd)[,names(comment.locations)]
     , is_equivalent_to(comment.locations))
-  expect_that(strip_comment(lines, parse.data=pd), equals(c('', 'abc', 'hello ', '')))
-  # Results not yet defined
-  # expect_that(extract_comment(lines, parse.data=pd), equals(c('', '#123', '# there', '')))
 })
 test_that("Find strings", {
   text <- {

@@ -24,19 +24,71 @@
 # this program. If not, see http://www.gnu.org/licenses/.
 # 
 }###############################################################################
-#' @include find-utils.R
 
-{ # comment
-find_comment <- make_class_finder(c("COMMENT", "ROXYGEN_COMMENT"))
+#' @rdname finders
+#' @include find-utils.R
+#' @title Finder Functions
+#' 
+#'  Finders are helper functions that assist in the definition of style checks.
+#'  These function assist by finding the regions that are either included 
+#'  or excluded from check.  Each finder musta accept the following arguments
+#'  and as well as the variadic argument \code{...}.
+#'  \enumerate{
+#'      \item file
+#'      \item lines
+#'      \item parse.data
+#'  }
+#'  Order of arguments is not guaranteed so explicit names use is required, 
+#'  since use of named arguments is guaranteed.
+#'  In addition other arguments may be added later.
+#'  Each finder is expected to retun a \link[conversion]{find} 
+#'  formated data.frame.
+#'  
+#'  Custom finders are encouraged, but finders for common classes are 
+#'  included in the package.
+#'  
+#' @param classes with \code{make_class_finder} the parser classes to find.
+#' @param parse.data data from \code{\link{parser}}
+#' @param ... extra args that include \code{file}, and \code{lines}
+#' 
+#' @export
+make_class_finder <- function(classes){
+    structure(function(..., parse.data) {
+        subset(parse.data, parse.data$token.desc %in% classes)
+    }, classes=classes)
+}
+
+
+#' @rdname finders
+#' @export
+find_comment    <- make_class_finder(c("COMMENT", "ROXYGEN_COMMENT"))
 strip_comment   <- make_stripper(find_comment)
 extract_comment <- make_extractor(find_comment)
-} # comment
-{ # string
+
+
+#' @rdname finders
+#' @export
+find_basic_comment    <- make_class_finder("COMMENT")
+strip_basic_comment   <- make_stripper(find_comment)
+extract_basic_comment <- make_extractor(find_comment)
+
+
+#' @rdname finders
+#' @export
+find_doc_comment    <- make_class_finder(c("ROXYGEN_COMMENT"))
+strip_doc_comment   <- make_stripper(find_comment)
+extract_doc_comment <- make_extractor(find_comment)
+
+
+#' @rdname finders
+#' @export
 find_string <- make_class_finder(c("STR_CONST"))
 strip_string   <- make_stripper(find_string, replace.with='""')
 extract_string <- make_extractor(find_string)
-} # string
-{ # function
+
+
+#' @rdname finders
+#' @export
 find_function_args <- function(parse.data, ...) {
   ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
   ddply(ftokens, "id" , function(d, ..., parse.data) {
@@ -48,6 +100,9 @@ find_function_args <- function(parse.data, ...) {
 }
 strip_function_args   <- make_stripper(find_function_args, replace.with="()")
 extract_function_args <- make_extractor(find_function_args)
+
+#' @rdname finders
+#' @export
 find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
   f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
@@ -56,18 +111,18 @@ find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
 }
 strip_function_body <- make_stripper(find_function_body, replace.with="{}")
 extract_function_body <- make_extractor(find_function_body)
-} # function
-{ # call args
-get_call_args <- function(file, parse.data=attr(parser(file)), ...) {
+
+
+#' @rdname finders
+#' @export
+find_call_args <- function(file, parse.data=attr(parser(file)), ...) {
   call.nodes <- subset(parse.data, 
     parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
-  llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
-}
-find_call_args <- function(file, parse.data=attr(parser(file)), ...) {
-  parse2find(get_call_args(parse.data=parse.data))
+  call.args <- 
+    llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
+  parse2find(call.args)
 }
 strip_call_args   <- make_stripper(find_call_args, replace.with="")
 extract_call_args <- make_extractor(extract_call_args)
-} # call args
 
 

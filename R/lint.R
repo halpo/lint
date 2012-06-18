@@ -37,11 +37,12 @@
 #' @import stringr
 #' @importFrom parser parser
 #' @importFrom harvestr noattr
-#' @importFrom dostats collect
+#' @import foreach
 #' @import dostats
 #' @include lint.patterns.R
 #' @include conversion.R
 #' @include family.R
+#' @include finders.R
 NULL
 
 { # TODO
@@ -51,7 +52,35 @@ NULL
   # 
 } 
 
-#{ # Core Functions
+#' Check a pattern against lines
+#' 
+#' This is part of lint which checks lines of text for stylistic problems.
+#' The pattern provided should be a Perl compatible regular expression.
+#' 
+#' @param lines character vector of lines of text to check, output from 
+#'   \code{\link{readLines}}.
+#' @param pattern perl compatible regular expression.
+#' @param ... discarded.
+#' @return returns an integer vector of the problem lines if problems were 
+#'   found. otherwise returns TRUE if the lines pass the check. 
+#'   \code{\link{isTRUE}} could be useful for checking the return value.
+#' @return \link[parse2find]{find} compatible format.
+#' @family lint
+#' @export
+check_pattern <- function(pattern
+  , lines
+  , ...) {
+if(F){
+  pattern = "^.{80}\\s*[^\\s]"
+}
+  if (length(pattern) > 1) {
+    foreach(pat=pattern, .combine=merge_find, .multicombine=TRUE
+           , .inorder=FALSE) %do% check_pattern(pat, lines, ...)
+  } else {
+    problem    <- str_locate(pattern=perl(pattern), string=lines)
+    locate2find(problem)
+  }
+}
 
 #' Look for an argument.
 #' 
@@ -65,27 +94,6 @@ with_default <- function(x, default) {
   x
 }
 
-#' Check a source document for stylistic errors.
-#' @param file a vector of file paths.
-#' @param text text to check
-#' @param tests The list of tests to use to check.
-#' 
-#' @family lint
-#' @export
-lint <- function(file, text=NULL, tests = lint.tests) {
-  stopifnot(missing(file)|inherits(file, 'character'))
-  if (missing(file) && !is.null(text)) {
-    stopifnot(inherits(text, "character"))
-    file = textConnection(text)
-    on.exit(close(file))
-  }
-  
-  parse.data=attr(parser(file), 'data')
-  lines=readLines(file)
-  
-  llply(lint.tests, redirf(dispatch_test), file=file
-        , parse.data=parse.data, lines=lines)  
-}
 
 #' Dispatch tests to the appropriate handler
 #' @param test the test
@@ -114,11 +122,12 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     in.regions <- in.fe %do% fun(file=file, lines=lines, parse.data=parse.data)
   }
   
-  exclude.region <- with_default(test$exclude.region, c("find_comment", "find_string"))
+  exclude.region <- 
+    with_default(test$exclude.region, c("find_comment", "find_string"))
   if (length(exclude.region)> 0L) {
     fun.ex.region <- find_fun(exclude.region)
-    ex.fe <- foreach(fun=fun.ex.region, .combine=rbind.fill, .multicombine=TRUE)
-    ex.regions <- ex.fe %do% fun(file=file, lines=lines, parse.data=parse.data)
+    ex.fe <- foreach(fun=fun.ex.region, .combine=merge_find, .multicombine=TRUE)
+    ex.regions <- foreach(fun=fun.ex.region) %do% fun(file=file, lines=lines, parse.data=parse.data)
   }
   
   use.lines = with_default(test$use.lines, TRUE)
@@ -134,106 +143,34 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
 
   if (!is.null(test$pattern)) {
     test.result <- do.call(check_pattern, append(test, list(lines=lines)))
-    if(isTRUE(test.result)) return(TRUE)
+    if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
     test.message <- with_default(test$message, test$pattern)
     str <- sprintf("Lint: %s: found on lines %s", test.message, 
-                   paste(test.result, collapse=', '))
+                   paste(test.result$line1, collapse=', '))
     do_message(str)
     return(invisible(test.result))
   } else
   stop("Ill-formatted check.")
 }
    
-#' Check a pattern against lines
+#' Check a source document for stylistic errors.
+#' @param file a vector of file paths.
+#' @param text text to check
+#' @param tests The list of tests to use to check.
 #' 
-#' This is part of lint which checks lines of text for stylistic problems.
-#' The pattern provided should be a Perl compatible regular expression.
-#' 
-#' @param lines character vector of lines of text to check, output from 
-#'   \code{\link{readLines}}.
-#' @param pattern perl compatible regular expression.
-#' @param ... discarded.
-#' @return returns an integer vector of the problem lines if problems were 
-#'   found. otherwise returns TRUE if the lines pass the check. 
-#'   \code{\link{isTRUE}} could be useful for checking the return value.
-#' @return \link[parse2find]{find} compatible format.
 #' @family lint
 #' @export
-check_pattern <- function(pattern
-  , lines
-  , ...) {
-if(F){
-  pattern = "^.{80}\\s*[^\\s]"
-}
-  if (length(pattern)>1) {
-    problem.yn <- llply(pattern, grepl, lines, perl=T)
-    problem.yn <- collect(problem.yn, `|`)
-  } else {
-    problem    <- str_locate(perl(pattern), lines)
+lint <- function(file, text=NULL, tests = lint.tests) {
+  stopifnot(missing(file)|inherits(file, 'character'))
+  if (missing(file) && !is.null(text)) {
+    stopifnot(inherits(text, "character"))
+    file = textConnection(text)
+    on.exit(close(file))
   }
-  problem.lines <- which(problem.yn)
-  if (any(problem.lines)) {
-    return(problem.lines)
-  } else {
-    return(TRUE)
-  }
-}
-#} # Core Functions
-{ # Region Finders
-make_class_finder <- function(classes){
-    structure(function(parse.data, ...) {
-        subset(parse.data, parse.data$token.desc %in% classes)
-    }, classes=classes)
-}
-{ # comment
-find_comment <- make_class_finder(c("COMMENT", "ROXYGEN_COMMENT"))
-strip_comment   <- make_stripper(find_comment)
-extract_comment <- make_extractor(find_comment)
-} # comment
-{ # string
-find_string <- make_class_finder(c("STR_CONST"))
-strip_string   <- make_stripper(find_string, replace.with='""')
-extract_string <- make_extractor(find_string)
-} # string
-{ # function
-find_function_args <- function(parse.data, ...) {
-  ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
-  ddply(ftokens, "id" , function(d, ..., parse.data) {
-    p <- d$parent
-    function.args <- subset(parse.data, parse.data$parent == d$p & 
-      !(parse.data$token.desc %in% c('expr', 'FUNCTION')))
-    parse2find(function.args)
-  }, parse.data = parse.data)
-}
-strip_function_args   <- make_stripper(find_function_args, replace.with="()")
-extract_function_args <- make_extractor(find_function_args)
-find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
-  f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")
-  body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
-  body.contents <- find_children(body.parents, parse.data)
-  parse2find(body.contents)
-}
-strip_function_body <- make_stripper(find_function_body, replace.with="{}")
-extract_function_body <- make_extractor(find_function_body)
-} # function
-{ # call args
-get_call_args <- function(file, parse.data=attr(parser(file)), ...) {
-  call.nodes <- subset(parse.data, 
-    parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
-  llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
-}
-find_call_args <- function(file, parse.data=attr(parser(file)), ...) {
-  parse2find(get_call_args(parse.data=parse.data))
-}
-strip_call_args   <- make_stripper(find_call_args, replace.with="")
-extract_call_args <- make_extractor(extract_call_args)
-} # call args
-}# Region Finders
-if (F) {  # testing code
-  using(plyr, stringr, parser, harvestr, compiler)
-  file <- normalizePath("lint.R")
-  parse.data <- attr(parser(file),"data")
-  lines <- readLines(file)
   
-  get_call_args(parse.data=parse.data)
+  parse.data=attr(parser(file), 'data')
+  lines=readLines(file)
+  
+  llply(lint.tests, dispatch_test, file=file
+        , parse.data=parse.data, lines=lines)  
 }

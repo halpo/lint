@@ -28,8 +28,12 @@ test_that("check_pattern", {
     "123",
     "abc",
     "xyz")
-  expect_that(check_pattern(lines, "no match"), is_true())
-  expect_that(check_pattern(lines, "123"), is_equivalent_to(1L))
+  expect_identical(check_pattern(lines, "no match"), empty.find
+    , 'no match gives and empty find result.')
+  expect_that(check_pattern(lines, "123")$line1, is_equivalent_to(1L)
+    , 'find the right line')
+  expect_that(valid_find(check_pattern(lines, "123")), is_true()
+    , 'return type is a valid find formated data.frame')
 })
 test_that("dispatch_test", {
   file <- 
@@ -43,16 +47,19 @@ test_that("dispatch_test", {
     "123",
     "abc",
     "xyz")
+  parse.data <- 
   pd <- attr(parser(text=paste(lines,'\n', collapse='')), 'data')
-  expect_that(dispatch_test(list(pattern='abc'), , pd, lines, warning=T)
+  test <- list(pattern='abc')
+  expect_that(
+      dispatch_test(test, , pd, lines, warning=T)
     , gives_warning('Lint: abc: found on lines 2'))
-  expect_that(dispatch_test(list(pattern="\\w{3}"), , pd, lines,  warning=T)
+  expect_that(
+      dispatch_test(list(pattern=perl("\\w{3}")), , pd, lines,  warning=T)
     , gives_warning('Lint: .*: found on lines 1, 2, 3'))
   expect_that(
-      dispatch_test(list(pattern="\\d{3}"), , pd, lines, warning=T)
+      dispatch_test(list(pattern=perl("\\d{3}")), , pd, lines, warning=T)
     , gives_warning('Lint: .*: found on lines 1'))
 })
-
 test_that("lint", {
     file <- 
     check.file <- system.file("examples/checks.R", package="lint")
@@ -63,6 +70,5 @@ test_that("lint", {
         , spacing.indentation.notabs=spacing.indentation.notabs
         , spacing.linelength.80=spacing.linelength.80)
     lint(check.file, lint.tests)
-    )
-    
 })
+

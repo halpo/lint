@@ -25,15 +25,8 @@
 # 
 }###############################################################################
 
-find_fun <- Vectorize(function(ex){
-    if(is.function(ex)) return(ex)
-    stopifnot(is.character(ex))
-    fun <- try(get(ex, mode = 'function', inherits=T), silent=TRUE)
-    if(!inherits(fun, 'try-error')) return(fun)
-    fun <- try(match.fun(ex.region.names[i]))
-    if(!inherits(fun, 'try-error')) return(fun)
-    stop(sprintf("Could not find `%s`", ex))
-}, SIMPLIFY=TRUE)
+
+
 strip <- function(lines, replace.data, replace.with=''){
 #'  Strip a region from the text
 #'  
@@ -94,9 +87,13 @@ make_extractor <- function(finder){
     extract(lines, find2replace(find))
   }
 }
-make_class_finder <- function(classes){
-    structure(function(..., parse.data) {
-        subset(parse.data, parse.data$token.desc %in% classes)
-    }, classes=classes)
-}
+find_fun <- Vectorize(function(ex){
+    if(is.function(ex)) return(ex)
+    stopifnot(is.character(ex))
+    fun <- try(get(ex, mode = 'function', inherits=T), silent=TRUE)
+    if(!inherits(fun, 'try-error')) return(fun)
+    fun <- try(match.fun(ex.region.names[i]))
+    if(!inherits(fun, 'try-error')) return(fun)
+    stop(sprintf("Could not find `%s`", ex))
+}, SIMPLIFY=TRUE)
 

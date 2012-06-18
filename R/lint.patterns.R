@@ -1,5 +1,5 @@
 #' @title Style checks
-#' @name style-checks
+#' @name stylechecks
 #' @docType data
 #' 
 #' @aliases 
@@ -26,18 +26,18 @@
 #' 
 #' 
 #' @exportPattern ^spacing\\.[^\\.].*
-#' NULL
+NULL
 
 .no.exclude <- character(0)
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
   , use.lines = TRUE
   , exclude.region = .no.exclude
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
   , use.lines = TRUE
@@ -45,82 +45,82 @@ spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
   , warning = TRUE
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.indentation.notabs <- list(pattern ="^\\t"
   , message = "tabs not allowed for intendation"
   , exclude.region = .no.exclude
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.notabs <- list(pattern = "\\t"
   , message = "tabs not ever allowed"
-  , exclude.region = "string"
+  , exclude.region = "find_string"
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.indentation.evenindent <- list(pattern = "^(  )*( )\\S"
   , message = "indentation should be by two spaces."
-  , exclude.region = c("function_args", "call_args")
+  , exclude.region = c("find_function_args", "find_call_args")
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
   , message =  "no space after comma")
 
-#' @rdname style-checks
+#' @rdname stylechecks
 escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 nonesc.opp  <- c('-', '<', '>')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 base.opp <- c(escaped.opp, nonesc.opp)
 
-#' @rdname style-checks
+#' @rdname stylechecks
 extended.opp <- c('\\*\\*')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 logical.opp <- c('\\|', '\\|\\|', '&', '&&', '<=', '==', '!=', '>=')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 assign.opp  <- c('<-', '->', '<<-', '->>')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 special.opp <- c('%[^%]*%')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 all.opp    <- c(base.opp, extended.opp, logical.opp, assign.opp, special.opp)
 
-#' @rdname style-checks
+#' @rdname stylechecks
 no.lead.rx = "[^\\s!%\\-\\+\\*\\/\\^<>=\\|&]"
 
-#' @rdname style-checks
+#' @rdname stylechecks
 any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.spacearoundinfix <- list(
     pattern = c(paste(no.lead.rx, '(', any.opp.rx, ')', sep='')
               , paste('(', any.opp.rx, ')', no.lead.rx, sep=''))
   , message = "needs space around infix opperators"
-  , exclude.region = c("comment", "string")
+  , exclude.region = c("find_comment", "find_string")
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.spacearoundequals <- list(
     pattern = c(paste(no.lead.rx, '(=)(?![=])', sep='')
               , paste('(?<![=!<>])(=)', no.lead.rx, sep=''))
   , message = "needs space around infix opperators"
-  , exclude.region = c("call_args", "comment", "string")
+  , exclude.region = c("find_call_args", "find_comment", "find_string")
 )
 
-#' @rdname style-checks
+#' @rdname stylechecks
 spacing.twobeforecomments <- list(
     pattern = "^[^#]*[^\\s#]\\s{0,1}#"
   , exclude.region = .no.exclude
   , message = "needs two spaces spacing before inline comments")
 
 
-#' @rdname style-checks
+#' @rdname stylechecks
 #' @export
 lint.tests <- list(
     spacing.twobeforecomments

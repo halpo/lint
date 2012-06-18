@@ -14,11 +14,16 @@ Imports:
     stringr,
     parser,
     harvestr,
-    dostats
+    dostats,
+    foreach
 Suggests:
     testthat,
     roxygen2
 License: GPL (>=3)
 Collate:
     'lint.patterns.R'
+    'find-utils.R'
+    'finders.R'
+    'conversion.R'
+    'family.R'
     'lint.R'
