@@ -127,7 +127,8 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
   if (length(exclude.region)> 0L) {
     fun.ex.region <- find_fun(exclude.region)
     ex.fe <- foreach(fun=fun.ex.region, .combine=merge_find, .multicombine=TRUE)
-    ex.regions <- foreach(fun=fun.ex.region) %do% fun(file=file, lines=lines, parse.data=parse.data)
+    ex.regions <- foreach(fun=fun.ex.region) %do% 
+                         fun(file=file, lines=lines, parse.data=parse.data)
   }
   
   use.lines = with_default(test$use.lines, TRUE)

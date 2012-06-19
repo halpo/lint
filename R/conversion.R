@@ -48,17 +48,50 @@
 #'                      same as replace for most purposes but does not include
 #'                      a string.
 #'  }
-#'  
-#'  
-#'  Converts data from the results of \code{\link{parser}}
 #'
+#'  @section parse data structure
+#'   Parse data structure originates from the \code{\link{parser}} function,
+#'   which returns an objects with the attribute '\code{data}'.  Parse formatted
+#'   data contains a row for every token, string, and expression.  
+#'   The data frame describes a tree structure with each row a node.
+#'   Each node has a parent unless it is a root node i.e. parent==0.
+#'   It has the following columns.
+#'   \enumerate{
+#'       \item \code{line1} starting line of the expression.
+#'       \item \code{col1} starting column.
+#'       \item \code{byte1} starting byte, the same as col1 for ascii.
+#'       \item \code{line2} ending line of the expression.
+#'       \item \code{col2} ending column.
+#'       \item \code{byte2} ending byte.
+#'       \item \code{token} the token class number.
+#'       \item \code{id} the unique id of the expression
+#'       \item \code{parent} the parent of the expression, 0 if none.
+#'       \item \code{top_level} top_level, which top level expression is the 
+#'                              expression associated with
+#'       \item \code{token.desc} class name of the token.
+#'       \item \code{terminal} is this a terminal node? i.e. has no child nodes.
+#'       \item \code{text}  the actual text of the expression.
+#'   }
+#'   
+#'   The parse data is formatted with C based indexing.  E.g. the first 
+#'   two elements would be listed as \code{col1=0, col2=2}.  The line number
+#'   however is 1 based so the first line is 1, there is no zero line.
+#'   
+#'   
 #'  @section find data structure
 #'   For the purposes of the data the find data consists of a single row 
-#'   for each section/region that 
-#'   contains the columns \code{line1}, \code{col1}, \code{byte1}, \code{line2}, 
+#'   for each section/region with the first 6 columns of parse.data;
+#'   the columns \code{line1}, \code{col1}, \code{byte1}, \code{line2}, 
 #'   \code{col2}, and \code{byte2}, marking the beginning and end of a section.
 #'   This is a condensation of the parse data which would have the same columns
 #'   as well as additional columns, and a row for each expression in the region.
+#'  
+#'   Find formatted data is defined to be R or 1 based arrays and inclusive.
+#'   the first two elements would be \code{col1=1, col2=2}.
+#'  
+#'   Although both \code{col} and \code{byte} elements are retained in 
+#'   conversion functions, at this time only \code{col} columns are used 
+#'   internally.
 #'  
 #'
 #'  @section Replace data structure
@@ -72,6 +105,9 @@
 #'   where \code{string} would be preferred but line to match up with line data.
 #'   \code{find2replace} uses the line, since the string is not available in the
 #'   \link[parse2find]{find data}.
+#'   
+#'   Replace data formatted data is also R/1 inclusive based arrays.
+#'
 #'
 #' @section Locate data structure
 #'  locate data is defined as the matrix that comes from \code{\link{str_locate}}.
@@ -81,6 +117,10 @@
 #'      \item \end{end}
 #'  }
 #'  and has a row for every line.
+NULL
+
+#' @rdname conversion
+#' @export
 empty.find <- {data.frame(
       'line1' = integer(0L)
     , 'col1'  = integer(0L)
@@ -90,17 +130,25 @@ empty.find <- {data.frame(
     , 'byte2' = integer(0L))}
 
 #' @rdname conversion
+#' @details parse2find
+#'  Expects either a parse formatted data.frame or a list of data.frames.
+#'  each data.frame is a contiguous region that is collaped into a single
+#'  find formatted data.frame, one row for each region.
+#'  
 #' @export
 parse2find <- function(parse.data) {
   if (!inherits(parse.data, 'data.frame') && inherits(parse.data, 'list')) {
-    return(ldply(parse.data, parse2find))
+    return(ldply(parse.data, parse2find)[names(empty.find)])
   }
+  if(nrow(parse.data)==0) return(empty.find)
   names1 <- c('line1', 'col1', 'byte1')
   names2 <- c('line2', 'col2', 'byte2')
-  return(data.frame(
-      parse.data[1L, names1]
-    , tail(parse.data, 1L)[1L, names2]
-  ))
+  pd1 <- parse.data[do.call(order, parse.data[names1]), ]
+  pd2 <- parse.data[do.call(order, parse.data[names2]), ]
+  mutate(data.frame(
+      head(pd1, 1L)[names1]
+    , tail(pd2, 1L)[names2]
+  ), col1=col1+1, byte1=byte1+1)
 }
 
 #' @rdname conversion
@@ -219,6 +267,8 @@ valid_find <- function(x, strict=FALSE, extended=TRUE){(
  && if(extended)
         !any(do_results_overlap(x) & !diag(T, nrow(x), nrow(x)))
     else TRUE
+ && !any(x$line1==0) && !any(x$col1==0) && !any(x$byte1==0)
+ && !any(x$line1 < x$line2)
 )}
 
 

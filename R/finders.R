@@ -54,37 +54,33 @@
 #' @export
 make_class_finder <- function(classes){
     structure(function(..., parse.data) {
-        subset(parse.data, parse.data$token.desc %in% classes)
+        rows  <- subset(parse.data, parse.data$token.desc %in% classes)
+        if(nrow(rows)==0) return(empty.find)
+        lrows <- structure(mlply(rows, data.frame)
+                          , split_type=NULL, split_labels=NULL)
+        parse2find(lrows)
     }, classes=classes)
 }
 
 
 #' @rdname finders
 #' @export
-find_comment    <- make_class_finder(c("COMMENT", "ROXYGEN_COMMENT"))
-strip_comment   <- make_stripper(find_comment)
-extract_comment <- make_extractor(find_comment)
+find_comment <- make_class_finder(c("COMMENT", "ROXYGEN_COMMENT"))
 
 
 #' @rdname finders
 #' @export
-find_basic_comment    <- make_class_finder("COMMENT")
-strip_basic_comment   <- make_stripper(find_comment)
-extract_basic_comment <- make_extractor(find_comment)
+find_basic_comment <- make_class_finder("COMMENT")
 
 
 #' @rdname finders
 #' @export
-find_doc_comment    <- make_class_finder(c("ROXYGEN_COMMENT"))
-strip_doc_comment   <- make_stripper(find_comment)
-extract_doc_comment <- make_extractor(find_comment)
+find_doc_comment <- make_class_finder(c("ROXYGEN_COMMENT"))
 
 
 #' @rdname finders
 #' @export
 find_string <- make_class_finder(c("STR_CONST"))
-strip_string   <- make_stripper(find_string, replace.with='""')
-extract_string <- make_extractor(find_string)
 
 
 #' @rdname finders
@@ -96,10 +92,8 @@ find_function_args <- function(parse.data, ...) {
     function.args <- subset(parse.data, parse.data$parent == d$p & 
       !(parse.data$token.desc %in% c('expr', 'FUNCTION')))
     parse2find(function.args)
-  }, parse.data = parse.data)
+  }, parse.data = parse.data)[names(empty.find)]
 }
-strip_function_args   <- make_stripper(find_function_args, replace.with="()")
-extract_function_args <- make_extractor(find_function_args)
 
 #' @rdname finders
 #' @export
@@ -109,8 +103,6 @@ find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
   body.contents <- find_children(body.parents, parse.data)
   parse2find(body.contents)
 }
-strip_function_body <- make_stripper(find_function_body, replace.with="{}")
-extract_function_body <- make_extractor(find_function_body)
 
 
 #' @rdname finders
@@ -122,7 +114,5 @@ find_call_args <- function(file, parse.data=attr(parser(file)), ...) {
     llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
   parse2find(call.args)
 }
-strip_call_args   <- make_stripper(find_call_args, replace.with="")
-extract_call_args <- make_extractor(extract_call_args)
 
 

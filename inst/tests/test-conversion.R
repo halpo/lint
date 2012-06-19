@@ -19,5 +19,19 @@ test_that('merge_find with single argument return single argument',{
 test_that('merge_find handles many empty finds.',{
     expect_that(merge_find(empty.find, empty.find), is_identical_to(empty.find))
 })
-
+test_that('parse2find adds 1 to col1 and byte1.', {
+    in.pd <- data.frame( line1=1L, col1=0L, byte1=0L
+                       , line2=2L, col2=2L, byte2=2L)
+    out.f <- data.frame( line1=1L, col1=1L, byte1=1L
+                       , line2=2L, col2=2L, byte2=2L)
+    expect_that(parse2find(in.pd), equals(out.f))
+})
+test_that('parse2find collapses data frames.', {
+    in.pd <- data.frame( line1=c(1L, 2L), col1=c(0L, 2L), byte1=c(0L, 2L)
+                       , line2=c(1L, 3L), col2=c(1L, 3L), byte2=c(1L, 3L))
+    out.f <- data.frame( line1=1L, col1=1L, byte1=1L
+                       , line2=3L, col2=3L, byte2=3L)
+    expect_that(parse2find(in.pd), equals(out.f))
+    
+})
 

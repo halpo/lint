@@ -9,8 +9,6 @@
 # 
 ################################################################################
 context("Infrastructure")
-library(parser)
-library(lint)
 
 test_that("with_default",{
   expect_that(with_default(NULL, T), is_true())
@@ -38,6 +36,7 @@ test_that("check_pattern", {
 test_that("dispatch_test", {
   file <- 
   check.file <- system.file("examples/checks.R", package="lint")
+  pd <-
   parse.data <- attr(parser(check.file), 'data')
   expect_that(
     dispatch_test(list(exclude.region=character(0)), check.file)
@@ -54,10 +53,12 @@ test_that("dispatch_test", {
       dispatch_test(test, , pd, lines, warning=T)
     , gives_warning('Lint: abc: found on lines 2'))
   expect_that(
-      dispatch_test(list(pattern=perl("\\w{3}")), , pd, lines,  warning=T)
+      dispatch_test(list(pattern=perl("\\w{3}")), 
+                   , parse.data=pd, lines=lines,  warning=T)
     , gives_warning('Lint: .*: found on lines 1, 2, 3'))
   expect_that(
-      dispatch_test(list(pattern=perl("\\d{3}")), , pd, lines, warning=T)
+      dispatch_test(list(pattern=perl("\\d{3}")), 
+                   , parse.data=pd, lines=lines,  warning=T)
     , gives_warning('Lint: .*: found on lines 1'))
 })
 test_that("lint", {
