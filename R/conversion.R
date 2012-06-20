@@ -29,7 +29,7 @@
 #' @title Lint internal data structures
 #' @keywords utils, internal
 #' 
-#' @section Introduction
+#' @section Introduction:
 #'  lint makes use of several functions from different packages that 
 #'  store data in various different formats.  These functions provide 
 #'  utilities for converting between the different formats.
@@ -41,7 +41,7 @@
 #'                      has it's own row.
 #'      \item find    - similar to parse but gives a row for each region or 
 #'                      expression of interest.
-#'      \item replace - for use with \code{\link[str_sub]{stringr}}.  
+#'      \item replace - for use with \code{\link[stringr:str_sub]{stringr}}.  
 #'                      Uses a column structure with start and end, organized
 #'                      into a matrix with a row for each line.
 #'      \item locate  - results from \code{\link{str_locate}} from stringr.
@@ -49,7 +49,7 @@
 #'                      a string.
 #'  }
 #'
-#'  @section parse data structure
+#'  @section parse data structure:
 #'   Parse data structure originates from the \code{\link{parser}} function,
 #'   which returns an objects with the attribute '\code{data}'.  Parse formatted
 #'   data contains a row for every token, string, and expression.  
@@ -78,7 +78,7 @@
 #'   however is 1 based so the first line is 1, there is no zero line.
 #'   
 #'   
-#'  @section find data structure
+#'  @section Find data structure:
 #'   For the purposes of the data the find data consists of a single row 
 #'   for each section/region with the first 6 columns of parse.data;
 #'   the columns \code{line1}, \code{col1}, \code{byte1}, \code{line2}, 
@@ -94,7 +94,7 @@
 #'   internally.
 #'  
 #'
-#'  @section Replace data structure
+#'  @section Replace data structure:
 #'   The data structure for replace data is defined as a data frame with 
 #'   columns suitable for use ase arguments to str_sub.  That is it has columns
 #'   \enumerate{
@@ -104,17 +104,17 @@
 #'   }
 #'   where \code{string} would be preferred but line to match up with line data.
 #'   \code{find2replace} uses the line, since the string is not available in the
-#'   \link[parse2find]{find data}.
+#'   find data.
 #'   
 #'   Replace data formatted data is also R/1 inclusive based arrays.
 #'
 #'
-#' @section Locate data structure
+#' @section Locate data structure:
 #'  locate data is defined as the matrix that comes from \code{\link{str_locate}}.
 #'  It has columns
 #'  \enumerate{
 #'      \item \code{start}
-#'      \item \end{end}
+#'      \item \code{end}
 #'  }
 #'  and has a row for every line.
 NULL
@@ -137,6 +137,7 @@ empty.find <- {data.frame(
 #'  
 #' @export
 parse2find <- function(parse.data) {
+  col1<-byte1<-NULL
   if (!inherits(parse.data, 'data.frame') && inherits(parse.data, 'list')) {
     return(ldply(parse.data, parse2find)[names(empty.find)])
   }
@@ -182,7 +183,7 @@ locate2find <- function(loc) {
       , byte2 = end)[!is.na(loc$start), names(empty.find)]
 }
 
-do_results_overlap <- function(x, y=x) {
+do_results_overlap <- function(x, y=x, strict.contains=FALSE) {
   if (nrow(x) > 1) {
     force(y)
     x   <- mlply(x,data.frame)
@@ -208,11 +209,14 @@ do_results_overlap <- function(x, y=x) {
     y.start <- y.start + y$byte1/max.byte
     y.end   <- y.end   + y$byte2/max.byte
   }
-  if (x.start <= y.start && y.start <= x.end) return(TRUE)
-  if (x.start <= y.end   && y.end   <= x.end) return(TRUE)
-  if (y.start <= x.start && x.start <= y.end) return(TRUE)
-  if (y.start <= x.end   && x.end   <= y.end) return(TRUE)
-  
+  if(strict.contains) {
+    if (x.start >= y.start && x.end <= y.end) return(TRUE)
+  } else {
+    if (x.start <= y.start && y.start <= x.end) return(TRUE)
+    if (x.start <= y.end   && y.end   <= x.end) return(TRUE)
+    if (y.start <= x.start && x.start <= y.end) return(TRUE)
+    if (y.start <= x.end   && x.end   <= y.end) return(TRUE)
+  }
   return(FALSE)
 }
 
@@ -220,8 +224,7 @@ merge_find <- function(...){
   # merge multiple find results
   # @param ... find results.
   find.results <- list(...)
-  if(length(find.results) == 0) { return(empty.find)
-  } 
+  if(length(find.results) == 0)return(empty.find)
   else if(length(find.results) == 1){
     if(valid_find(find.results[[1]], T, T))
       return(find.results[[1]])
@@ -235,26 +238,31 @@ merge_find <- function(...){
     y <- find.results[[2]]
     if(nrow(y) == 0) return(x)
     if(nrow(x) == 0) return(y)
+    keep <- names(empty.find)
     overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
     names(overlaps) <- c('x.idx', 'y.idx')
-    merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
-    x.row <- x[x.idx, ]
-    y.row <- y[y.idx, ]
-    data.frame(
-      line1 = min(x.row$line1, y.row$line1),
-       col1 = min( x.row$col1,  y.row$col1),
-      byte1 = min(x.row$byte1, y.row$byte1),
-      line2 = min(x.row$line2, y.row$line2),
-       col2 = min( x.row$col2,  y.row$col2),
-      byte2 = min(x.row$byte2, y.row$byte2))
-    }, x=x, y=y)
-    keep <- c('line1', 'col1', 'byte1', 'line2', 'col2', 'byte2')
-    new.finds <- rbind(merged[keep],
-    x[-overlaps$x.idx, keep],
-    y[-overlaps$y.idx, keep])
+    if(nrow(overlaps) >= 1) {
+        merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
+            x.row <- x[x.idx, ]
+            y.row <- y[y.idx, ]
+            data.frame(
+              line1 = min(x.row$line1, y.row$line1),
+               col1 = min( x.row$col1,  y.row$col1),
+              byte1 = min(x.row$byte1, y.row$byte1),
+              line2 = min(x.row$line2, y.row$line2),
+               col2 = min( x.row$col2,  y.row$col2),
+              byte2 = min(x.row$byte2, y.row$byte2))
+            }, x=x, y=y)
+        new.finds <- rbind(merged[keep],
+        x[-overlaps$x.idx, keep],
+        y[-overlaps$y.idx, keep])
+        new.finds[do.call(order, new.finds), ]
+    } else {
+        combined <- rbind(x[keep], y[keep])
+        combined[do.call(order, combined),]
+    }
     #' @results a single \code{\link{data.frame}} with find results where 
     #'  overlaps were merged
-    new.finds[do.call(order, new.finds), ]
   }
 }
 
@@ -271,4 +279,33 @@ valid_find <- function(x, strict=FALSE, extended=TRUE){(
  && !any(x$line1 < x$line2)
 )}
 
+span_intersect <- function(x, y){
+    if(nrow(x)==0 || nrow(y)==0) return(empty.find)
+    overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
+    names(overlaps) <- c('x.idx', 'y.idx')
+    mdply(overlaps, function(x.idx, y.idx, x, y){
+    x.row <- x[x.idx, ]
+    y.row <- y[y.idx, ]
+    data.frame(
+      line1 = min(x.row$line1, y.row$line1),
+       col1 = min( x.row$col1,  y.row$col1),
+      byte1 = min(x.row$byte1, y.row$byte1),
+      line2 = min(x.row$line2, y.row$line2),
+       col2 = min( x.row$col2,  y.row$col2),
+      byte2 = min(x.row$byte2, y.row$byte2))
+    }, x=x, y=y)[names(empty.find)]
+}
+
+span_difference <- function(x, y, strict=FALSE) {
+#' @param x find formatted data.frame
+#' @param y find formatted data.frame
+#' @param strict should a strict difference be taken or only 
+#'               those of x not completly contained in y (default).
+    if(nrow(x)==0 || nrow(y)==0) return(x)
+    overlaps <- do_results_overlap(x,y, TRUE)
+    xo <- apply(overlaps, 1, any)
+    if(!strict) {
+        return(x[!xo,])
+    } else stop('I have not done strict span difference yet, not sure I will.')
+}
 

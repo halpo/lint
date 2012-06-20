@@ -10,6 +10,9 @@
 ################################################################################
 context("Infrastructure")
 
+test_that('find_region returns empty.find for empty.regions',{
+    expect_that(find_region(character(0),,,), is_identical_to(empty.find))
+})
 test_that("with_default",{
   expect_that(with_default(NULL, T), is_true())
   expect_that(with_default(NULL, F), is_false())
@@ -66,10 +69,10 @@ test_that("lint", {
     check.file <- system.file("examples/checks.R", package="lint")
         
     lint.tests <- list(
-        spacing.twobeforecomments=spacing.twobeforecomments
-        , spacing.spacearoundequals=spacing.spacearoundequals
-        , spacing.indentation.notabs=spacing.indentation.notabs
-        , spacing.linelength.80=spacing.linelength.80)
+          spacing.twobeforecomments  = spacing.twobeforecomments
+        , spacing.spacearoundequals  = spacing.spacearoundequals
+        , spacing.indentation.notabs = spacing.indentation.notabs
+        , spacing.linelength.80      = spacing.linelength.80)
     lint(check.file, lint.tests)
 })
 

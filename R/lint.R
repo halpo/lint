@@ -52,6 +52,22 @@ NULL
   # 
 } 
 
+find_region <- function(region, file, lines, parse.data){
+    if (length(region)> 0L) {
+        fun.region <- find_fun(region)
+        if(is.function(fun.region)){
+            fun.region(file=file, lines=lines, parse.data=parse.data)
+        } else if(is.list(fun.region) && length(fun.region) == 1) {
+            fun.region[[1]](file=file, lines=lines, parse.data=parse.data)
+        } else if(is.list(fun.region) && length(fun.region) >= 2) {
+            fun <- stop
+            fe <- foreach(fun=fun.region, .combine=merge_find
+                            , .multicombine=TRUE, .init=empty.find )
+            fe %do% fun(file=file, lines=lines, parse.data=parse.data)
+        } else stop("mal-formed region!")
+    } else empty.find
+}
+
 #' Check a pattern against lines
 #' 
 #' This is part of lint which checks lines of text for stylistic problems.
@@ -64,16 +80,14 @@ NULL
 #' @return returns an integer vector of the problem lines if problems were 
 #'   found. otherwise returns TRUE if the lines pass the check. 
 #'   \code{\link{isTRUE}} could be useful for checking the return value.
-#' @return \link[parse2find]{find} compatible format.
+#' @return \link[lint:conversion]{find} compatible format.
 #' @family lint
 #' @export
 check_pattern <- function(pattern
   , lines
   , ...) {
-if(F){
-  pattern = "^.{80}\\s*[^\\s]"
-}
   if (length(pattern) > 1) {
+    pat=NULL
     foreach(pat=pattern, .combine=merge_find, .multicombine=TRUE
            , .inorder=FALSE) %do% check_pattern(pat, lines, ...)
   } else {
@@ -112,25 +126,20 @@ with_default <- function(x, default) {
 #' a passed test or the lines, locations, and/or string violating the rules.
 #' @export
 dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
-  , lines=readLines(file), quiet=FALSE, warning=with_default(test$warning, FALSE)
+  , lines=readLines(file), quiet=FALSE
+  , warning=with_default(test$warning, FALSE)
 ) {
-  include.region <- with_default(test$include.region, character(0))
-  if (length(include.region)>=1L) {
-    stop("include.region not yet supported.")
-    fun.in.region <- find_fun(include.region)
-    in.fe <- foreach(fun=fun.in.region, .combine=rbind.fill, .multicombine=TRUE)
-    in.regions <- in.fe %do% fun(file=file, lines=lines, parse.data=parse.data)
-  }
+  include.spans <- find_region(with_default(test$include.region, character(0))
+                              , file=file, lines=lines, parse.data=parse.data)
   
   exclude.region <- 
-    with_default(test$exclude.region, c("find_comment", "find_string"))
-  if (length(exclude.region)> 0L) {
-    fun.ex.region <- find_fun(exclude.region)
-    ex.fe <- foreach(fun=fun.ex.region, .combine=merge_find, .multicombine=TRUE)
-    ex.regions <- foreach(fun=fun.ex.region) %do% 
-                         fun(file=file, lines=lines, parse.data=parse.data)
-  }
+             with_default(test$exclude.region, c("find_comment", "find_string"))
+  exclude.spans <- find_region(exclude.region
+                              , file=file, lines=lines, parse.data=parse.data)
   
+  if(nrow(include.spans) && nrow(exclude.spans))
+    stop("specifying both include and exclude regions is undefined")
+    
   use.lines = with_default(test$use.lines, TRUE)
   if (!use.lines) lines <- paste(lines, '\n', collapse='')
   
@@ -145,6 +154,14 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
   if (!is.null(test$pattern)) {
     test.result <- do.call(check_pattern, append(test, list(lines=lines)))
     if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
+    
+    # Check problems for inclusion area
+    if(nrow(include.spans) > 0) {
+        test.result <- span_intersect(test.result, exclude.spans)
+    }
+    if(nrow(exclude.spans) > 0) {
+        test.result <- span_difference(test.result, exclude.spans)
+    }    
     test.message <- with_default(test$message, test$pattern)
     str <- sprintf("Lint: %s: found on lines %s", test.message, 
                    paste(test.result$line1, collapse=', '))

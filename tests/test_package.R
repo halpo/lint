@@ -1,1 +1,4 @@
-testthat::test_package("lint")
+library(testthat)
+library(parser)
+library(lint)
+test_package("lint")

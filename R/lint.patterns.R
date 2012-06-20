@@ -24,47 +24,10 @@
 # this program. If not, see http://www.gnu.org/licenses/.
 # 
 }###############################################################################
-#' @title Style checks
-#' @name stylechecks
-#' @docType data
-#' 
-#' @aliases 
-#'     lint.tests
-#'     style_checks
-#'     style_tests
-#' 
-#' @format
-#' Each test can be defined in several formats and is very flexible.
-#' A test consists of a names list of attributes.
-#' \enumerate{
-#'   \item \code{pattern} is a pcre compatible \link[base:regex]{regular
-#'         expression} that is tested. Can be a character vector of expressions.
-#'   \item \code{message} The message to be displayed.
-#'   \item \code{include.region} lists regions to restrict the search to.
-#'         Can be a character vector specifying the known regions, or a list of 
-#'         functions that interpret output from \code{\link{parser}}.
-#'   \item \code{exclude.region=c('comments', 'string')} lists regions to 
-#'         restrict the search to. Operates the sames as \code{include.region}.
-#'   \item \code{use.lines=T} should the pattern be evaluated in lines (default)
-#'          or as a contiguous block of text.
-#'   \item \code{warning=F}
-#' }
-#' 
-#' 
-#' @exportPattern ^spacing\\.[^\\.].*
+
+#' @include pattern-utils.R
 NULL
 
-.no.exclude <- character(0)
-escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')
-nonesc.opp  <- c('-', '<', '>')
-base.opp <- c(escaped.opp, nonesc.opp)
-extended.opp <- c('\\*\\*')
-logical.opp <- c('\\|', '\\|\\|', '&', '&&', '<=', '==', '!=', '>=')
-assign.opp  <- c('<-', '->', '<<-', '->>')
-special.opp <- c('%[^%]*%')
-all.opp    <- c(base.opp, extended.opp, logical.opp, assign.opp, special.opp)
-no.lead.rx = "[^\\s!%\\-\\+\\*\\/\\^<>=\\|&]"
-any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
 
 #' @rdname stylechecks
 #' @export
@@ -73,20 +36,27 @@ spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
   , use.lines = TRUE
   , exclude.region = .no.exclude
 )
-
 spacing.linelength.80.testinfo <- {list(
-    lines = c(
-        paste0(rep.int(81,'#'))
-}
+    lines = c('123'
+      , paste(rep.int('#', 80), collapse='')
+      , paste(rep.int('#', 81), collapse=''))
+  , results = data.frame(line1=3, col1=1, byte1=1, line2=3, col2=81, byte2=81)
+)}
 
 #' @rdname stylechecks
 #' @export
 spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
-  , message = "Line width exceeds 80 characters"
+  , message = "Line width exceeds 100 characters"
   , use.lines = TRUE
   , exclude.region = .no.exclude
   , warning = TRUE
 )
+spacing.linelength.100.testinfo <- {list(
+    lines = c('123'
+      , paste(rep.int('#', 100), collapse='')
+      , paste(rep.int('#', 101), collapse=''))
+  , results = data.frame(line1=3, col1=1, byte1=1, line2=3, col2=101, byte2=101)
+)}
 
 #' @rdname stylechecks
 #' @export
@@ -94,6 +64,20 @@ spacing.indentation.notabs <- list(pattern ="^\\t"
   , message = "tabs not allowed for intendation"
   , exclude.region = .no.exclude
 )
+spacing.indentation.notabs.testinfo <- {list(
+    lines = c('    "hello world"'   # Good
+            , '\t"hi there"'        # Bad
+            , '"don\'t\t catch me"' # Good, inside string
+            , '#don\'t\t catch me'  # OK, not at beginning
+            , 'IM <-\twrong()')     # OK, not at beginning
+  , results = data.frame(
+        line1 = as.integer(c(2))
+      , col1  = as.integer(c(1))
+      , byte1 = as.integer(c(1))
+      , line2 = as.integer(c(2))
+      , col2  = as.integer(c(1))
+      , byte2 = as.integer(c(1)))
+)}
 
 #' @rdname stylechecks
 #' @export
@@ -101,6 +85,20 @@ spacing.notabs <- list(pattern = "\\t"
   , message = "tabs not ever allowed"
   , exclude.region = "find_string"
 )
+spacing.notabs.testinfo <- {list(
+    lines = c('    "hello world"'   # Good
+            , '\t"hi there"'        # Bad
+            , '"don\'t\t catch me"' # OK, inside string(excluded)
+            , "#don't\t catch me"  # Bad, inside comment, not excluded
+            , 'IM <-\twrong()')     # Bad
+  , results = data.frame(
+        line1 = as.integer(c(2, 4, 5))
+      , col1  = as.integer(c(1, 7, 6))
+      , byte1 = as.integer(c(1, 7, 6))
+      , line2 = as.integer(c(2, 4, 5))
+      , col2  = as.integer(c(1, 7, 6))
+      , byte2 = as.integer(c(1, 7, 6)))
+)}
 
 #' @rdname stylechecks
 #' @export

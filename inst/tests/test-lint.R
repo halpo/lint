@@ -10,7 +10,21 @@
 # 
 # 
 ################################################################################
-# context("Patterns")
+context("Patterns")
+
+test_that('spacing.linelength.80'
+    , test_pattern_style( spacing.linelength.80
+                        , spacing.linelength.80.testinfo))
+test_that('spacing.linelength.100'
+    , test_pattern_style( spacing.linelength.100
+                        , spacing.linelength.100.testinfo))
+test_that('spacing.indentation.notabs'
+    , test_pattern_style( spacing.indentation.notabs
+                        , spacing.indentation.notabs.testinfo))
+test_that('spacing.notabs'
+    , test_pattern_style( spacing.notabs
+                        , spacing.notabs.testinfo))
+
 
 # test_that("Testing patterns",{
   # file <- 
@@ -18,10 +32,7 @@
   # lines <- readLines(check.file, encoding="ansi")
   # pd <- attr(parser(check.file), 'data')
   
-  # expect_that(dispatch_test(spacing.linelength.80, file, pd, lines, quiet=T)
-    # , equals(11:12))
-  # expect_that(dispatch_test(spacing.linelength.100, file, pd, lines, quiet=T)
-    # , equals(12))
+  
   # expect_that(dispatch_test(spacing.notabs, file, pd, lines, quiet=T)
     # , equals(13))
   # expect_that(dispatch_test(spacing.indentation.evenindent, file, pd, lines, quiet=T)

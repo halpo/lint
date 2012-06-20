@@ -1,7 +1,7 @@
 Package: lint
 Title: Tools to check R code style
 Version: 0.1
-Date: 2012-06-07
+Date: 2012-06-19
 Author: Andrew Redd <andrew.redd@hsc.utah.edu>
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 Description: Tools fro checking R code for syle compliance.
@@ -21,6 +21,7 @@ Suggests:
     roxygen2
 License: GPL (>=3)
 Collate:
+    'pattern-utils.R'
     'lint.patterns.R'
     'find-utils.R'
     'finders.R'

@@ -41,13 +41,15 @@
 #'  Order of arguments is not guaranteed so explicit names use is required, 
 #'  since use of named arguments is guaranteed.
 #'  In addition other arguments may be added later.
-#'  Each finder is expected to retun a \link[conversion]{find} 
+#'  Each finder is expected to retun a \link[lint:conversion]{find} 
 #'  formated data.frame.
 #'  
 #'  Custom finders are encouraged, but finders for common classes are 
 #'  included in the package.
 #'  
 #' @param classes with \code{make_class_finder} the parser classes to find.
+#' @param file the file being examined.
+#' @param lines the lines being examined.
 #' @param parse.data data from \code{\link{parser}}
 #' @param ... extra args that include \code{file}, and \code{lines}
 #' 
@@ -55,7 +57,7 @@
 make_class_finder <- function(classes){
     structure(function(..., parse.data) {
         rows  <- subset(parse.data, parse.data$token.desc %in% classes)
-        if(nrow(rows)==0) return(empty.find)
+        if(nrow(rows) == 0) return(empty.find)
         lrows <- structure(mlply(rows, data.frame)
                           , split_type=NULL, split_labels=NULL)
         parse2find(lrows)
@@ -107,7 +109,7 @@ find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
 
 #' @rdname finders
 #' @export
-find_call_args <- function(file, parse.data=attr(parser(file)), ...) {
+find_call_args <- function(file, lines=NULL, parse.data=attr(parser(file)), ...) {
   call.nodes <- subset(parse.data, 
     parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
   call.args <- 

@@ -77,8 +77,8 @@ get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
   get_child(parents, parse.data, nchildren)
 }
 
-#' Find all root node from parse data
 all_root_nodes <- function(pd, recurse.groups=T, group=0){
+#' Find all root node from parse data
   #' @param pd parse data from \code{\link{parser}}
   #' @param recurse.groups decend into grouped code \code{\{\}}?
   #' @param group the grouping node id
@@ -89,22 +89,22 @@ all_root_nodes <- function(pd, recurse.groups=T, group=0){
       subs <- ldply(roots$id[groups], all_root_nodes, pd=pd
                    , recurse.groups=recurse.groups)
       rbind(roots[!groups,]
-          , subset(subs, token.desc=='expr'))
+          , subset(subs, subs$token.desc=='expr'))
     } else roots
   } else roots
   #' @return parse data with for the root nodes.
 }
 
-#' Check if a row represent a comment
 is_doc_comment <- function(pd.row){
+  #' Check if a row represent a comment
   #' @param pd.row row of parse data
   pd.row$token.desc == "ROXYGEN_COMMENT"
 }
 get_all_doc_comments <- function(pd){
   subset(pd, pd$token.desc == "ROXYGEN_COMMENT")
 }
-#' check if a row is a comment
 is_comment <- function(pd.row, allow.roxygen = F){
+  #' check if a row is a comment
   #' @param pd.row row of parse.data
   #' @param allow.roxygen should roxygen 
   if (nrow(pd.row)>1) return(daply(pd.row, 'id', is_comment
@@ -113,8 +113,8 @@ is_comment <- function(pd.row, allow.roxygen = F){
   (allow.roxygen && pd.row$token.desc == "ROXYGEN_COMMENT")
 }
 
-#' test if a node is a root node
 is_root <- function(.id=pd$id, pd){
+#' test if a node is a root node
   #' @inheritParams is_grouping
   #' @description
   #' A root node is defined to be a node that either has no parent 
@@ -140,8 +140,8 @@ ascend_to_root <- function(row=pd, pd) {
 }
 
 
-#' test if an id is a grouping element
 is_grouping <- function(id=pd$id, pd){
+#' test if an id is a grouping element
   #' @param id id number in \code{pd}
   #' @param pd parse data to use to check \code{id}
   if(length(id)>1) return(laply(id, is_grouping, pd))
