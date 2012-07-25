@@ -60,10 +60,11 @@ find_region <- function(region, file, lines, parse.data){
         } else if(is.list(fun.region) && length(fun.region) == 1) {
             fun.region[[1]](file=file, lines=lines, parse.data=parse.data)
         } else if(is.list(fun.region) && length(fun.region) >= 2) {
-            fun <- stop
-            fe <- foreach(fun=fun.region, .combine=merge_find
-                            , .multicombine=TRUE, .init=empty.find )
-            fe %do% fun(file=file, lines=lines, parse.data=parse.data)
+            l <- vector('list', length(fun.region))
+            for(i in seq_along(fun.region))
+            l[[i]] <- fun.region[[i]](file=file, lines=lines
+                                      , parse.data=parse.data)
+            Reduce(merge_find, l)
         } else stop("mal-formed region!")
     } else empty.find
 }

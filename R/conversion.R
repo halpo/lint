@@ -183,41 +183,43 @@ locate2find <- function(loc) {
       , byte2 = end)[!is.na(loc$start), names(empty.find)]
 }
 
+do_results_overlap_1 <- function(x, y, strict.contains) {
+    #' @note assumes that x and y are 1 row each.
+    if (x$line2 < y$line1) return(FALSE)
+    if (x$line1 > y$line2) return(FALSE)
+    x.start <- x$line1
+    x.end   <- x$line2
+    y.start <- y$line1
+    y.end   <- y$line2
+    max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
+    if (max.byte>0) {
+        x.start <- x.start + x$byte1/max.byte
+        x.end   <- x.end   + x$byte2/max.byte 
+        y.start <- y.start + y$byte1/max.byte
+        y.end   <- y.end   + y$byte2/max.byte
+    }
+    if(strict.contains) {
+        if (x.start >= y.start && x.end <= y.end) return(TRUE)
+    } else {
+        if (x.start <= y.start && y.start <= x.end) return(TRUE)
+        if (x.start <= y.end   && y.end   <= x.end) return(TRUE)
+        if (y.start <= x.start && x.start <= y.end) return(TRUE)
+        if (y.start <= x.end   && x.end   <= y.end) return(TRUE)
+    }
+    return(FALSE)
+}
 do_results_overlap <- function(x, y=x, strict.contains=FALSE) {
-  if (nrow(x) > 1) {
-    force(y)
-    x   <- mlply(x,data.frame)
-    res <- llply(x, do_results_overlap, y)
-    return(laply(res, noattr))
-  }
-  if (nrow(y) > 1) {
+    #' @note assumes x and y are find results formatted data frames.
     force(x)
-    y <- mlply(y,data.frame)
-    res <- llply(y, do_results_overlap, x=x)
-    return(laply(res, noattr))
-  }
-  if (x$line2 < y$line1) return(FALSE)
-  if (x$line1 > y$line2) return(FALSE)
-  x.start <- x$line1
-  x.end   <- x$line2
-  y.start <- y$line1
-  y.end   <- y$line2
-  max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
-  if (max.byte>0) {
-    x.start <- x.start + x$byte1/max.byte
-    x.end   <- x.end   + x$byte2/max.byte 
-    y.start <- y.start + y$byte1/max.byte
-    y.end   <- y.end   + y$byte2/max.byte
-  }
-  if(strict.contains) {
-    if (x.start >= y.start && x.end <= y.end) return(TRUE)
-  } else {
-    if (x.start <= y.start && y.start <= x.end) return(TRUE)
-    if (x.start <= y.end   && y.end   <= x.end) return(TRUE)
-    if (y.start <= x.start && x.start <= y.end) return(TRUE)
-    if (y.start <= x.end   && x.end   <= y.end) return(TRUE)
-  }
-  return(FALSE)
+    force(y)
+    y <- mlply(y, data.frame)
+    x <- mlply(x, data.frame)
+    z <- matrix(NA, length(x), length(y))
+    for(i in seq_along(x)) for(j in seq_along(y))
+        z[i, j] <- do_results_overlap_1(x[[i]], y[[j]]
+                                        , strict.contains = strict.contains)
+    return(z)
+    #' @return logical matrix of dimention \code{nrow(x)} by \nrow{nrow(y)}.
 }
 
 merge_find <- function(...){
@@ -268,13 +270,16 @@ merge_find <- function(...){
 
 valid_find <- function(x, strict=FALSE, extended=TRUE){(
     is(x,'data.frame')
- && if(strict)
+ && if(strict) {
         identical(names(empty.find), names(x))
-    else
+    } else {
         all(names(empty.find) %in% names(x))
- && if(extended)
+    }
+ && if(extended) {
         !any(do_results_overlap(x) & !diag(T, nrow(x), nrow(x)))
-    else TRUE
+    } else {
+        TRUE
+    }
  && !any(x$line1==0) && !any(x$col1==0) && !any(x$byte1==0)
  && !any(x$line1 < x$line2)
 )}
