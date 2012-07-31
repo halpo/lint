@@ -31,17 +31,19 @@
 #' @title Performace Enhancing Styles
 #' @description
 #'  This collection of styles assert checks on known performance improvements.
-#' 
-#' 
+#' @format  Lint style checks.
+#' @seealso lint
 #' 
 #' @include base.patterns.R
+#' @exportPattern ^performance\\..*$
+NULL
 
 #' @rdname performance-styles
 #' @export performance.square
 performance.square <- {list(
     pattern = perl(sprintf("(%s)\\s*\\*\\s*\\1", name.pattern))
 )}
-performance.square.testinfo <- {list(
+.testinfo.performance.square <- {list(
     lines = c('2*2'
             , 'a*a'
             , 'a^2')

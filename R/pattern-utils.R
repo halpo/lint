@@ -56,6 +56,8 @@ NULL
 #' 
 #' @param check a style check
 #' @param ti the test info data
+#' @param only.results if true returns results but does not check for
+#'                     correspondance.  For debugging.
 #' 
 #' @return either NULL or throws an error for use with test_that
 #' 
@@ -100,11 +102,17 @@ test_pattern_style <- function(check, ti, only.results=F) {
 
 #' @rdname test_pattern_style
 #' @param test.name the name of the test as a string.
+#' \code{autotest_style} uses the \code{.testinfo.<<stylename>>} object to 
+#' automatically test styles.  The test info object should be a list with 
+#' \code{$lines} and \code{$results}. The '\code{$lines}' element is the input 
+#' lines and \code{$results} is the find formated data.frame.
+#' 
+#' @export
 autotest_style <- function(test.name) {
 test.name <- as.character(substitute(c(test.name)))[-1]
 test_that(test.name
     , test_pattern_style( get(test.name)
-                        , get(paste0(test.name, '.testinfo'))))
+                        , get(paste0('.testinfo.', test.name))))
 }
 
 

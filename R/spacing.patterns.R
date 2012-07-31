@@ -26,17 +26,18 @@
 }###############################################################################
 
 #' @include pattern-utils.R
+#' @exportPattern ^spacing\\..*$
 NULL
 
 
 #' @rdname stylechecks
 #' @export
-spacing.linelength.80 <- list(pattern = "^.{80}\\s*[^\\s]"
+spacing.linelength.80 <- {list(pattern = "^.{80}\\s*[^\\s]"
   , message = "Line width exceeds 80 characters"
   , use.lines = TRUE
   , exclude.region = .no.exclude
-)
-spacing.linelength.80.testinfo <- {list(
+)}
+.testinfo.spacing.linelength.80 <- {list(
     lines = c('123'
       , paste(rep.int('#', 80), collapse='')
       , paste(rep.int('#', 81), collapse=''))
@@ -45,13 +46,13 @@ spacing.linelength.80.testinfo <- {list(
 
 #' @rdname stylechecks
 #' @export
-spacing.linelength.100 <- list(pattern = "^.{100}\\s*[^\\s]"
+spacing.linelength.100 <- {list(pattern = "^.{100}\\s*[^\\s]"
   , message = "Line width exceeds 100 characters"
   , use.lines = TRUE
   , exclude.region = .no.exclude
   , warning = TRUE
-)
-spacing.linelength.100.testinfo <- {list(
+)}
+.testinfo.spacing.linelength.100 <- {list(
     lines = c('123'
       , paste(rep.int('#', 100), collapse='')
       , paste(rep.int('#', 101), collapse=''))
@@ -64,7 +65,7 @@ spacing.indentation.notabs <- list(pattern ="^\\t"
   , message = "tabs not allowed for intendation"
   , exclude.region = .no.exclude
 )
-spacing.indentation.notabs.testinfo <- {list(
+.testinfo.spacing.indentation.notabs <- {list(
     lines = c('    "hello world"'   # Good
             , '\t"hi there"'        # Bad
             , '"don\'t\t catch me"' # Good, inside string
@@ -85,7 +86,7 @@ spacing.notabs <- list(pattern = "\\t"
   , message = "tabs not ever allowed"
   , exclude.region = "find_string"
 )
-spacing.notabs.testinfo <- {list(
+.testinfo.spacing.notabs <- {list(
     lines = c('    "hello world"'   # Good
             , '\t"hi there"'        # Bad
             , '"don\'t\t catch me"' # OK, inside string(excluded)

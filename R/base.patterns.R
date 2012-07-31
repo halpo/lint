@@ -25,15 +25,39 @@
 # 
 }###############################################################################
 
+#' @name base-patterns
+#' @rdname base-patterns
+#' @title Base Patterns
+#' @description
+#'  Use these perl regular expressions to help build pattern based styles.
+#' @exportPattern .*\\.characters
+#' @exportPattern .*\\.constant
+NULL
 
-
+#' @rdname base-patterns
 start.characters <- "[\\p{L}\\.]"
+
+#' @rdname base-patterns
 following.characters <- "[\\p{L}\\p{N}\\._\\d]"
+
+#' @rdname base-patterns
 name.pattern <- sprintf("%s%s*", start.characters, following.characters)
+
+#' @rdname base-patterns
 real.constant <- c("\\d+\\.?\\d*", "\\d*\\.?\\d+")
+
+#' @rdname base-patterns
 exp.constant <- "\\d+\\.?\\d*[eE][+-]?\\d+"
+
+#' @rdname base-patterns
 int.constant <- "\\dL"
+
+#' @rdname base-patterns
 complex.constant <- sprintf("%si", real.constant)
-numeric.constant.all <- c(real.constant, exp.constant, int.constant
+
+#' @rdname base-patterns
+numeric.all.constant <- c(real.constant, exp.constant, int.constant
                           , complex.constant)
-numeric.constant <- paste0('(', paste(numeric.constant.all, collapse='|'), ')')
+
+#' @rdname base-patterns
+numeric.constant <- paste0('(', paste(numeric.all.constant, collapse='|'), ')')
