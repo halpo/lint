@@ -1,5 +1,5 @@
 {############################################################################### 
-# Conversion.R
+# lint.R
 # This file is part of the R package lint.
 # 
 # Copyright 2012 Andrew Redd
@@ -7,7 +7,7 @@
 # 
 # DESCRIPTION
 # ===========
-# functions for conversion between the difference formats
+# primary lint functions.
 # 
 # LICENSE
 # ========
@@ -130,45 +130,49 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
   , lines=readLines(file), quiet=FALSE
   , warning=with_default(test$warning, FALSE)
 ) {
-  include.spans <- find_region(with_default(test$include.region, character(0))
-                              , file=file, lines=lines, parse.data=parse.data)
-  
-  exclude.region <- 
-             with_default(test$exclude.region, c("find_comment", "find_string"))
-  exclude.spans <- find_region(exclude.region
-                              , file=file, lines=lines, parse.data=parse.data)
-  
-  if(nrow(include.spans) && nrow(exclude.spans))
-    stop("specifying both include and exclude regions is undefined")
+    include.spans <- find_region(with_default(test$include.region, character(0))
+                          , file=file, lines=lines, parse.data=parse.data)
     
-  use.lines = with_default(test$use.lines, TRUE)
-  if (!use.lines) lines <- paste(lines, '\n', collapse='')
-  
-  do_message <- if(quiet){
-    function(...){}
-  } else if(warning) {
-    get("warning", mode="function")
-  } else {
-    get("message", mode="function")
-  }
-
-  if (!is.null(test$pattern)) {
-    test.result <- do.call(check_pattern, append(test, list(lines=lines)))
-    if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
+    exclude.region <- 
+         with_default(test$exclude.region, c("find_comment", "find_string"))
+    exclude.spans <- find_region(exclude.region
+                          , file=file, lines=lines, parse.data=parse.data)
     
-    # Check problems for inclusion area
-    if(nrow(include.spans) > 0) {
-        test.result <- span_intersect(test.result, exclude.spans)
+    if(nrow(include.spans) && nrow(exclude.spans))
+        stop("specifying both include and exclude regions is undefined")
+    
+    use.lines = with_default(test$use.lines, TRUE)
+    if (!use.lines) lines <- paste(lines, '\n', collapse='')
+    
+    do_message <- if(quiet){
+        function(...){}
+    } else if(warning) {
+        get("warning", mode="function")
+    } else {
+        get("message", mode="function")
     }
-    if(nrow(exclude.spans) > 0) {
-        test.result <- span_difference(test.result, exclude.spans)
-    }    
-    test.message <- with_default(test$message, test$pattern)
-    str <- sprintf("Lint: %s: found on lines %s", test.message, 
-                   paste(test.result$line1, collapse=', '))
-    do_message(str)
-    return(invisible(test.result))
-  } else
+
+    if (!is.null(test$pattern)) {
+        test.result <- do.call(check_pattern, append(test, list(lines=lines)))
+        if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
+        
+        # Check problems for inclusion area
+        if(nrow(include.spans) > 0) {
+            test.result <- span_intersect(test.result, exclude.spans)
+        }
+        if(nrow(exclude.spans) > 0) {
+            test.result <- span_difference(test.result, exclude.spans)
+        }    
+        test.message <- with_default(test$message, test$pattern)
+        str <- sprintf("Lint: %s: found on lines %s", test.message, 
+                       paste(test.result$line1, collapse=', '))
+        do_message(str)
+        return(invisible(test.result))
+    } else  if(!is.null(test$f)) {
+        new.args <- append(test, list(file=file, lines=lines
+                                      , parse.data=parse.data))
+        test.result <- do.call(check_functional, new.args)
+    }
   stop("Ill-formatted check.")
 }
    
