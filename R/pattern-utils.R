@@ -59,7 +59,7 @@ NULL
 #' 
 #' @return either NULL or throws an error for use with test_that
 #' 
-test_pattern_style <- function(check, ti) {
+test_pattern_style <- function(check, ti, only.results=F) {
     if(is.null(ti$file)) {
         if(is.null(ti$lines)) {
             if(is.null(ti$text))
@@ -93,8 +93,18 @@ test_pattern_style <- function(check, ti) {
     suppressMessages(suppressWarnings(
         results <- dispatch_test(check, file=ti$file, lines=ti$lines
                                 , parse.data=parse.data)))
+    if(only.results) return(results)
     expect_equivalent(results, ti$results)
-    return(NULL)
+    return(invisible(NULL))
+}
+
+#' @rdname test_pattern_style
+#' @param test.name the name of the test as a string.
+autotest_style <- function(test.name) {
+test.name <- as.character(substitute(c(test.name)))[-1]
+test_that(test.name
+    , test_pattern_style( get(test.name)
+                        , get(paste0(test.name, '.testinfo'))))
 }
 
 
