@@ -28,3 +28,5 @@ Collate:
     'conversion.R'
     'family.R'
     'lint.R'
+    'base.patterns.R'
+    'performance.patterns.R'
