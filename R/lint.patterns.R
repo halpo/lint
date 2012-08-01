@@ -31,7 +31,7 @@ NULL
 
 #' @rdname stylechecks
 #' @export
-lint.tests <- list(
+lint.style <- list(
     spacing.twobeforecomments
   , spacing.spacearoundequals
   , spacing.indentation.notabs
