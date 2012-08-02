@@ -176,24 +176,45 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
   stop("Ill-formatted check.")
 }
    
-#' Check a source document for stylistic errors.
+#' Check for stylistic errors.
 #' @param file a vector of file paths.
+#' @param style The list of styles tests to use to check.
 #' @param text text to check
-#' @param tests The list of tests to use to check.
+#' @param recurse recurse into directory and sub-directories.
+#' 
+#' Check source documents for stylistic errors.  The test are given as a list
+#' in  \code{tests}.  If a directory is given all *.R files in that directory 
+#' and sub-directories are checked.  If a file other than a .R or .r file 
+#' is desired it must be given explicitly as the \code{file} argument.
+#' 
 #' 
 #' @family lint
 #' @export
-lint <- function(file, text=NULL, tests = lint.tests) {
-  stopifnot(missing(file)|inherits(file, 'character'))
-  if (missing(file) && !is.null(text)) {
-    stopifnot(inherits(text, "character"))
-    file = textConnection(text)
-    on.exit(close(file))
-  }
+lint <- function(file='.', style = lint.style, recurse=TRUE, text=NULL) {
+    stopifnot(missing(file)|inherits(file, 'character'))
+    if (missing(file) && !is.null(text)) {
+        stopifnot(inherits(text, "character"))
+        file = textConnection(text)
+        on.exit(close(file))
+    } else {
+        fi <- file.info(file)
+        files <- if(any(fi$isdir)) {
+            c( file[!fi$isdir]
+             , dir(file[fi$isdir], pattern=".*\\.[Rr]$"
+                  , full.names=TRUE, recursive=recurse))
+        } else {
+            file
+        }
+    }
+
+    invisible(llply(files, lint_file, style=style))
+}
+
+lint_file <- function(file, style) {
+    message("Lint checking", file)
+    parse.data=attr(parser(file), 'data')
+    lines=readLines(file)
   
-  parse.data=attr(parser(file), 'data')
-  lines=readLines(file)
-  
-  llply(lint.tests, dispatch_test, file=file
-        , parse.data=parse.data, lines=lines)  
+    invisible(llply(lint.tests, dispatch_test, file=file
+        , parse.data=parse.data, lines=lines))
 }
