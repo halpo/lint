@@ -54,7 +54,7 @@ NULL
 
 find_region <- function(region, file, lines, parse.data){
     if (length(region)> 0L) {
-        fun.region <- find_fun(region)
+        fun.region <- find_finder_fun(region)
         if(is.function(fun.region)){
             fun.region(file=file, lines=lines, parse.data=parse.data)
         } else if(is.list(fun.region) && length(fun.region) == 1) {
@@ -207,10 +207,10 @@ lint <- function(file='.', style = lint.style, recurse=TRUE, text=NULL) {
 }
 
 lint_file <- function(file, style) {
-    message("Lint checking", file)
+    message("Lint checking: ", file)
     parse.data=attr(parser(file), 'data')
     lines=readLines(file)
   
-    invisible(llply(lint.tests, dispatch_test, file=file
+    invisible(llply(style, dispatch_test, file=file
         , parse.data=parse.data, lines=lines))
 }

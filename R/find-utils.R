@@ -87,7 +87,7 @@ make_extractor <- function(finder){
     extract(lines, find2replace(find))
   }
 }
-find_fun <- Vectorize(function(ex){
+find_finder_fun <- Vectorize(function(ex){
     if(is.function(ex)) return(ex)
     stopifnot(is.character(ex))
     fun <- try(get(ex, mode = 'function', inherits=T), silent=TRUE)

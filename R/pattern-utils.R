@@ -29,7 +29,6 @@
 #' @docType data
 #' 
 #' @aliases 
-#'     lint.tests
 #'     style_checks
 #'     style_tests
 #' 
