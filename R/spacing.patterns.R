@@ -127,26 +127,16 @@ spacing.spacearoundinfix <- list(
 spacing.spacearoundequals <- list(
     pattern = c(paste(no.lead.rx, '(=)(?![=])', sep='')
               , paste('(?<![=!<>])(=)', no.lead.rx, sep=''))
-  , message = "needs space around infix opperators"
+  , message = "needs space around `=`"
   , exclude.region = c("find_call_args", "find_comment", "find_string")
 )
 
 #' @rdname stylechecks
 #' @export
 spacing.twobeforecomments <- list(
-    pattern = "^[^#]*[^\\s#]\\s{0,1}#"
+    pattern = perl("^[^#]*[^\\s#]\\s{0,1}(?<!^[{}])#")
   , exclude.region = .no.exclude
   , message = "needs two spaces spacing before inline comments")
-
-
-#' @rdname stylechecks
-#' @export
-lint.tests <- list(
-    spacing.twobeforecomments
-  , spacing.spacearoundequals
-  , spacing.indentation.notabs
-  , spacing.linelength.80
-)
 
 
 

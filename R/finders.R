@@ -87,7 +87,7 @@ find_string <- make_class_finder(c("STR_CONST"))
 
 #' @rdname finders
 #' @export
-find_function_args <- function(parse.data, ...) {
+find_function_args <- function(..., parse.data) {
   ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
   ddply(ftokens, "id" , function(d, ..., parse.data) {
     p <- d$parent
@@ -99,7 +99,7 @@ find_function_args <- function(parse.data, ...) {
 
 #' @rdname finders
 #' @export
-find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
+find_function_body <- function(..., file, parse.data = attr(parser(file))) {
   f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
   body.contents <- find_children(body.parents, parse.data)
@@ -109,7 +109,7 @@ find_function_body <- function(file, parse.data = attr(parser(file)), ...) {
 
 #' @rdname finders
 #' @export
-find_call_args <- function(file, lines=NULL, parse.data=attr(parser(file)), ...) {
+find_call_args <- function(..., file, parse.data=attr(parser(file))) {
   call.nodes <- subset(parse.data, 
     parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
   call.args <- 

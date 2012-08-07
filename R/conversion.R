@@ -110,7 +110,8 @@
 #'
 #'
 #' @section Locate data structure:
-#'  locate data is defined as the matrix that comes from \code{\link{str_locate}}.
+#'  locate data is defined as the matrix that comes from 
+#'  \code{\link{str_locate}}.
 #'  It has columns
 #'  \enumerate{
 #'      \item \code{start}
@@ -137,7 +138,7 @@ empty.find <- {data.frame(
 #'  
 #' @export
 parse2find <- function(parse.data) {
-  col1<-byte1<-NULL
+  col1 <- byte1 <- NULL
   if (!inherits(parse.data, 'data.frame') && inherits(parse.data, 'list')) {
     return(ldply(parse.data, parse2find)[names(empty.find)])
   }
@@ -208,7 +209,7 @@ do_results_overlap_1 <- function(x, y, strict.contains) {
     }
     return(FALSE)
 }
-do_results_overlap <- function(x, y=x, strict.contains=FALSE) {
+do_results_overlap <- function(x, y = x, strict.contains = FALSE) {
     #' @note assumes x and y are find results formatted data frames.
     force(x)
     force(y)
@@ -268,7 +269,7 @@ merge_find <- function(...){
   }
 }
 
-valid_find <- function(x, strict=FALSE, extended=TRUE){(
+valid_find <- function(x, strict = FALSE, extended = TRUE){(
     is(x,'data.frame')
  && if(strict) {
         identical(names(empty.find), names(x))
@@ -301,7 +302,7 @@ span_intersect <- function(x, y){
     }, x=x, y=y)[names(empty.find)]
 }
 
-span_difference <- function(x, y, strict=FALSE) {
+span_difference <- function(x, y, strict = FALSE) {
 #' @param x find formatted data.frame
 #' @param y find formatted data.frame
 #' @param strict should a strict difference be taken or only 

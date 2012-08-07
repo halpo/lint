@@ -54,7 +54,7 @@ NULL
 
 find_region <- function(region, file, lines, parse.data){
     if (length(region)> 0L) {
-        fun.region <- find_fun(region)
+        fun.region <- find_finder_fun(region)
         if(is.function(fun.region)){
             fun.region(file=file, lines=lines, parse.data=parse.data)
         } else if(is.list(fun.region) && length(fun.region) == 1) {
@@ -168,13 +168,33 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
                        paste(test.result$line1, collapse=', '))
         do_message(str)
         return(invisible(test.result))
-    } else  if(!is.null(test$f)) {
+    } 
+    else if(!is.null(test$f)) {
         new.args <- append(test, list(file=file, lines=lines
                                       , parse.data=parse.data))
         test.result <- do.call(check_functional, new.args)
-    }
-  stop("Ill-formatted check.")
+    } 
+    else stop("Ill-formatted check.")
+    
+    # check results.
+    if(nrow(exclude.spans) > 0) {
+        test.result <- span_difference(test.result, exclude.spans)
+    }    
+    test.message <- with_default(test$message, test$pattern)
+    str <- sprintf("Lint: %s: found on lines %s", test.message, 
+                   format_problem_lines(test.result$line1))
+    do_message(str)
+    return(invisible(test.result))
 }
+
+format_problem_lines <- function(lines, max.to.show = 5) {
+    if(length(lines) > max.to.show) 
+        return(paste(lines, collapse=', '))
+    paste(c( head(lines, max.to.show)
+           , sprintf("+%d more.", length(lines) - max.to.show))
+         , collapse=', ')
+}
+
    
 #' Check for stylistic errors.
 #' @param file a vector of file paths.
@@ -211,10 +231,10 @@ lint <- function(file='.', style = lint.style, recurse=TRUE, text=NULL) {
 }
 
 lint_file <- function(file, style) {
-    message("Lint checking", file)
+    message("Lint checking: ", file)
     parse.data=attr(parser(file), 'data')
     lines=readLines(file)
   
-    invisible(llply(lint.tests, dispatch_test, file=file
+    invisible(llply(style, dispatch_test, file=file
         , parse.data=parse.data, lines=lines))
 }
