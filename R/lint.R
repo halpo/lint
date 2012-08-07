@@ -165,12 +165,21 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     }    
     test.message <- with_default(test$message, test$pattern)
     str <- sprintf("Lint: %s: found on lines %s", test.message, 
-                   paste(test.result$line1, collapse=', '))
+                   format_problem_lines(test.result$line1))
     do_message(str)
     return(invisible(test.result))
   } else
   stop("Ill-formatted check.")
 }
+
+format_problem_lines <- function(lines, max.to.show = 5) {
+    if(length(lines) > max.to.show) 
+        return(paste(lines, collapse=', '))
+    paste(c( head(lines, max.to.show)
+           , sprintf("+%d more.", length(lines) - max.to.show))
+         , collapse=', ')
+}
+
    
 #' Check for stylistic errors.
 #' @param file a vector of file paths.

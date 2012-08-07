@@ -138,7 +138,7 @@ empty.find <- {data.frame(
 #'  
 #' @export
 parse2find <- function(parse.data) {
-  col1<-byte1<-NULL
+  col1 <- byte1 <- NULL
   if (!inherits(parse.data, 'data.frame') && inherits(parse.data, 'list')) {
     return(ldply(parse.data, parse2find)[names(empty.find)])
   }
