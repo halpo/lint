@@ -76,13 +76,12 @@ test_that("lint", {
     lint(check.file, lint.tests)
 })
 
-# span_intersect
+{# span_intersect
 span.1119 <- make_ex_span(1, 1, 1, 9)
 span.1114 <- make_ex_span(1, 1, 1, 4)
 span.1517 <- make_ex_span(1, 5, 1, 7)
 span.2129 <- make_ex_span(2, 1, 2, 9)
-
-test_that('span_intersect return empty.find when given empty arguments', {
+test_that('span_intersect returns empty.find when given empty arguments', {
     expect_identical(span_intersect(span.1119, empty.find), empty.find)
     expect_identical(span_intersect(empty.find, span.1119), empty.find)
 })
@@ -109,4 +108,10 @@ test_that('span_intersect can correctly do overlaps', {
     expect_identical(span_intersect(span.1527, span.2129), span.2127)
     expect_identical(span_intersect(span.2129, span.1527), span.2127)
 })
+}
 
+test_that("format_problem_lines",{
+    expect_identical(format_problem_lines(1:3, 5), '1, 2, 3')
+    expect_identical(format_problem_lines(1:5, 5), '1, 2, 3, 4, 5')
+    expect_identical(format_problem_lines(1:6, 5), '1, 2, 3, 4, 5, +1 more.')
+})

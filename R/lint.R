@@ -154,20 +154,6 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
 
     if (!is.null(test$pattern)) {
         test.result <- do.call(check_pattern, append(test, list(lines=lines)))
-        if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
-        
-        # Check problems for inclusion area
-        if(nrow(include.spans) > 0) {
-            test.result <- span_intersect(test.result, exclude.spans)
-        }
-        if(nrow(exclude.spans) > 0) {
-            test.result <- span_difference(test.result, exclude.spans)
-        }    
-        test.message <- with_default(test$message, test$pattern)
-        str <- sprintf("Lint: %s: found on lines %s", test.message, 
-                       paste(test.result$line1, collapse=', '))
-        do_message(str)
-        return(invisible(test.result))
     } 
     else if(!is.null(test$f)) {
         new.args <- append(test, list(file=file, lines=lines
@@ -176,22 +162,26 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     } 
     else stop("Ill-formatted check.")
     
+    if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
+    
     # check results.
     if(nrow(exclude.spans) > 0) {
         test.result <- span_difference(test.result, exclude.spans)
     }    
     if(nrow(include.spans) > 0) {
         test.result <- span_intersect(test.result, include.spans)
-    }    
-    test.message <- with_default(test$message, test$pattern)
-    str <- sprintf("Lint: %s: found on lines %s", test.message, 
-                   format_problem_lines(test.result$line1))
-    do_message(str)
-    return(invisible(test.result))
+    }
+    if(nrow(test.result)){
+        test.message <- with_default(test$message, test$pattern)
+        str <- sprintf("Lint: %s: found on lines %s", test.message, 
+                       format_problem_lines(test.result$line1))
+        do_message(str)
+        return(invisible(test.result))
+    } else return(TRUE)
 }
 
 format_problem_lines <- function(lines, max.to.show = 5) {
-    if(length(lines) > max.to.show) 
+    if(length(lines) <= max.to.show) 
         return(paste(lines, collapse=', '))
     paste(c( head(lines, max.to.show)
            , sprintf("+%d more.", length(lines) - max.to.show))
