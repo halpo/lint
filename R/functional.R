@@ -54,10 +54,10 @@
 #'
 #' @export check_functional
 check_functional <- function(f, ..., file, lines, parse.data){
-	result <- f(file=file, lines=lines, parse.data=parse.data)
-	if(isTRUE(result))
-		result <- empty.find
-	stopifnot(valid_find(result))
-	return(result)
+    result <- f(file=file, lines=lines, parse.data=parse.data)
+    if(isTRUE(result))
+        result <- empty.find
+    stopifnot(valid_find(result))
+    return(result)
 }
 

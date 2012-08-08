@@ -45,13 +45,6 @@
 #' @include finders.R
 NULL
 
-{ # TODO
-  # ----
-  # * independent function as a check.
-  # * 
-  # 
-} 
-
 find_region <- function(region, file, lines, parse.data){
     if (length(region)> 0L) {
         fun.region <- find_finder_fun(region)

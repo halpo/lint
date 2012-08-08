@@ -156,19 +156,20 @@ parse2find <- function(parse.data) {
 #' @rdname conversion
 #' @export
 find2replace <- function(find.data) {
-  mdply(find.data, function(line1, byte1, line2, byte2, ...){
+  mdply(find.data, .find2replace1)[, -seq_len(ncol(find.data))]
+}
+.find2replace1 <- function(line1, byte1, line2, byte2, ...){
     if (line1==line2) {
-      data.frame(line=line1, start = byte1 + 1, end = byte2)
+      data.frame(line = line1, start = byte1 + 1, end = byte2)
     } else {
-      nlines = line2-line1
+      nlines <- line2 - line1
       data.frame(
         line  = c(line1:line2), 
         start = c(byte1+1, rep(1L, nlines)),
         end   = c(rep(-1L, nlines), byte2))
     }
-  })[, -seq_len(ncol(find.data))]
 }
-
+  
 #' @rdname conversion
 #' @export
 locate2find <- function(loc) {
@@ -245,17 +246,7 @@ merge_find <- function(...){
     overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
     names(overlaps) <- c('x.idx', 'y.idx')
     if(nrow(overlaps) >= 1) {
-        merged <- mdply(overlaps, function(x.idx, y.idx, x, y){
-            x.row <- x[x.idx, ]
-            y.row <- y[y.idx, ]
-            data.frame(
-              line1 = min(x.row$line1, y.row$line1),
-               col1 = min( x.row$col1,  y.row$col1),
-              byte1 = min(x.row$byte1, y.row$byte1),
-              line2 = min(x.row$line2, y.row$line2),
-               col2 = min( x.row$col2,  y.row$col2),
-              byte2 = min(x.row$byte2, y.row$byte2))
-            }, x=x, y=y)
+        merged <- mdply(overlaps, .merge_by_idx1, x=x, y=y)
         new.finds <- rbind(merged[keep],
         x[-overlaps$x.idx, keep],
         y[-overlaps$y.idx, keep])
@@ -267,6 +258,17 @@ merge_find <- function(...){
     #' @results a single \code{\link{data.frame}} with find results where 
     #'  overlaps were merged
   }
+}
+.merge_by_idx1 <- function(x.idx, y.idx, x, y){
+    x.row <- x[x.idx, ]
+    y.row <- y[y.idx, ]
+    data.frame(
+      line1 = min(x.row$line1, y.row$line1),
+       col1 = min( x.row$col1,  y.row$col1),
+      byte1 = min(x.row$byte1, y.row$byte1),
+      line2 = min(x.row$line2, y.row$line2),
+       col2 = min( x.row$col2,  y.row$col2),
+      byte2 = min(x.row$byte2, y.row$byte2))
 }
 
 valid_find <- function(x, strict = FALSE, extended = TRUE){(
@@ -290,32 +292,33 @@ span_intersect <- function(x, y){
     overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
     if(nrow(overlaps)==0) return(empty.find)
     names(overlaps) <- c('x.idx', 'y.idx')
-    mdply(overlaps, function(x.idx, y.idx, x, y){
+    mdply(overlaps, .span_intersect1, x=x, y=y)[names(empty.find)]
+}
+.span_intersect1 <- function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
-    
-    line1 = max(x.row$line1, y.row$line1)
-    col1  = if(x.row$line1 == y.row$line1) max(x.row$col1, y.row$col1)
-            else if(x.row$line1 < y.row$line1) y.row$col1
-            else x.row$col1
-    byte1 = if(x.row$line1 == y.row$line1) max(x.row$byte1, y.row$byte1)
-            else if(x.row$line1 < y.row$line1) y.row$byte1
-            else x.row$byte1
-    line2 = min(x.row$line2, y.row$line2)
-    col2  = if(x.row$line2 == y.row$line2) min(x.row$col2, y.row$col2)
-            else if(x.row$line2 > y.row$line2) y.row$col2
-            else x.row$col2
-    byte2 = if(x.row$line2 == y.row$line2) min(x.row$byte2, y.row$byte2)
-            else if(x.row$line2 > y.row$line2) y.row$byte2
-            else x.row$byte2
-    
+
+    line1 <- max(x.row$line1, y.row$line1)
+    col1  <- if(x.row$line1 == y.row$line1) max(x.row$col1, y.row$col1)
+             else if(x.row$line1 < y.row$line1) y.row$col1
+             else x.row$col1
+    byte1 <- if(x.row$line1 == y.row$line1) max(x.row$byte1, y.row$byte1)
+             else if(x.row$line1 < y.row$line1) y.row$byte1
+             else x.row$byte1
+    line2 <- min(x.row$line2, y.row$line2)
+    col2  <- if(x.row$line2 == y.row$line2) min(x.row$col2, y.row$col2)
+             else if(x.row$line2 > y.row$line2) y.row$col2
+             else x.row$col2
+    byte2 <- if(x.row$line2 == y.row$line2) min(x.row$byte2, y.row$byte2)
+             else if(x.row$line2 > y.row$line2) y.row$byte2
+             else x.row$byte2
+
     data.frame( line1 = line1
               ,  col1 =  col1
               , byte1 = byte1
               , line2 = line2
               ,  col2 =  col2
               , byte2 = byte2)
-    }, x=x, y=y)[names(empty.find)]
 }
 
 span_difference <- function(x, y, strict = FALSE) {

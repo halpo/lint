@@ -26,7 +26,7 @@
 }###############################################################################
 #' @include conversion.R
 
-get_child <- function(id, parse.data, nlevels=-1L, include.parent=TRUE) {
+get_child <- function(id, parse.data, nlevels = -1L, include.parent = TRUE) {
 #'  @rdname get_children
 #'  @export
   stopifnot(length(id)==1)
@@ -40,7 +40,7 @@ get_child <- function(id, parse.data, nlevels=-1L, include.parent=TRUE) {
   }
   parse.sub
 }
-get_children <- function(id, parse.data, nlevels=-1L){
+get_children <- function(id, parse.data, nlevels = -1L){
 #' Find the children of an expression
 #' 
 #'  This takes the \code{parse.data} and find all the children of the expression
@@ -67,7 +67,7 @@ find_children <- function(...){
 get_parent <- function(id, parse.data) {
   parse.data[parse.data$id == id, 'parent']
 }
-get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
+get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
   parents <- id
   while(nancestors > 0L){
     nancestors <- nancestors -1
@@ -77,7 +77,7 @@ get_family <- function(id, parse.data, nancestors=0L, nchildren=Inf){
   get_child(parents, parse.data, nchildren)
 }
 
-all_root_nodes <- function(pd, recurse.groups=T, group=0){
+all_root_nodes <- function(pd, recurse.groups = T, group = 0){
 #' Find all root node from parse data
   #' @param pd parse data from \code{\link{parser}}
   #' @param recurse.groups decend into grouped code \code{\{\}}?
@@ -113,7 +113,7 @@ is_comment <- function(pd.row, allow.roxygen = F){
   (allow.roxygen && pd.row$token.desc == "ROXYGEN_COMMENT")
 }
 
-is_root <- function(.id=pd$id, pd){
+is_root <- function(.id = pd$id, pd){
 #' test if a node is a root node
   #' @inheritParams is_grouping
   #' @description
@@ -128,10 +128,10 @@ is_root <- function(.id=pd$id, pd){
   if (is_grouping(parent, pd)) return(TRUE)
   return(FALSE)
 }
-ascend_to_root <- function(row=pd, pd) {
+ascend_to_root <- function(row = pd, pd) {
   if (nrow(row) > 1) return(daply(row, 'id', ascend_to_root, pd))
   if(is_root(row$id, pd)) return(row$id)
-  parent = row$parent
+  parent <- row$parent
   if(parent<0) return(-parent)
   while(!is_root(parent, pd)) 
     parent <- get_parent(parent, pd)
@@ -140,7 +140,7 @@ ascend_to_root <- function(row=pd, pd) {
 }
 
 
-is_grouping <- function(id=pd$id, pd){
+is_grouping <- function(id = pd$id, pd){
 #' test if an id is a grouping element
   #' @param id id number in \code{pd}
   #' @param pd parse data to use to check \code{id}

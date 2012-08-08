@@ -27,7 +27,7 @@
 
 
 
-strip <- function(lines, replace.data, replace.with=''){
+strip <- function(lines, replace.data, replace.with = ''){
 #'  Strip a region from the text
 #'  
 #'  The \code{strip} fucntion removes the region defined in \code{replace.data} 
@@ -62,8 +62,8 @@ extract <- function(lines, replace.data) {
   var.names <- c('string', 'start', 'end')
   maply(replace.data[, var.names], `str_sub`, .expand=F)
 }
-make_stripper <- function(finder, replace.with=''){
-  replace.with.default = replace.with
+make_stripper <- function(finder, replace.with = ''){
+  replace.with.default <- replace.with
   function(
     lines,
     text =  paste(lines, collapse='\n'),
@@ -87,13 +87,14 @@ make_extractor <- function(finder){
     extract(lines, find2replace(find))
   }
 }
-find_finder_fun <- Vectorize(function(ex){
+.find_finder_fun1 <- function(ex){
     if(is.function(ex)) return(ex)
     stopifnot(is.character(ex))
-    fun <- try(get(ex, mode = 'function', inherits=T), silent=TRUE)
+    fun <- try(get(ex, mode = 'function', inherits = T), silent=TRUE)
     if(!inherits(fun, 'try-error')) return(fun)
     fun <- try(match.fun(ex.region.names[i]))
     if(!inherits(fun, 'try-error')) return(fun)
     stop(sprintf("Could not find `%s`", ex))
-}, SIMPLIFY=TRUE)
+}
+find_finder_fun <- Vectorize(.find_finder_fun1, SIMPLIFY = TRUE)
 
