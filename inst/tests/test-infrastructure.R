@@ -76,3 +76,37 @@ test_that("lint", {
     lint(check.file, lint.tests)
 })
 
+# span_intersect
+span.1119 <- make_ex_span(1, 1, 1, 9)
+span.1114 <- make_ex_span(1, 1, 1, 4)
+span.1517 <- make_ex_span(1, 5, 1, 7)
+span.2129 <- make_ex_span(2, 1, 2, 9)
+
+test_that('span_intersect return empty.find when given empty arguments', {
+    expect_identical(span_intersect(span.1119, empty.find), empty.find)
+    expect_identical(span_intersect(empty.find, span.1119), empty.find)
+})
+test_that('span_intersect can identify nested spans.', {
+    expect_identical(span_intersect(span.1119, span.1517), span.1517)
+    expect_identical(span_intersect(span.1517, span.1119), span.1517)
+})
+test_that('span_intersect returns empty when nonintersecting spans are given', {
+    expect_identical(span_intersect(span.1114, span.1517), empty.find)
+    expect_identical(span_intersect(span.1119, span.2129), empty.find)
+})
+test_that('span_intersect can recognize multiple overlaps', {
+    spans.A <- rbind(span.1114, span.1517)
+    expect_identical(span_intersect(spans.A, span.1119), spans.A)
+    expect_identical(span_intersect(span.1119, spans.A), spans.A)
+})
+test_that('span_intersect can correctly do overlaps', {
+    span.1117 <- make_ex_span(1, 1, 1, 7)
+    span.1519 <- make_ex_span(1, 5, 1, 9)
+    span.1527 <- make_ex_span(1, 5, 2, 7)
+    span.2127 <- make_ex_span(2, 1, 2, 7)
+    expect_identical(span_intersect(span.1117, span.1519), span.1517)
+    expect_identical(span_intersect(span.1519, span.1117), span.1517)
+    expect_identical(span_intersect(span.1527, span.2129), span.2127)
+    expect_identical(span_intersect(span.2129, span.1527), span.2127)
+})
+

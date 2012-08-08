@@ -114,6 +114,16 @@ test_that(test.name
                         , get(paste0('.testinfo.', test.name))))
 }
 
+make_ex_span <- function(line1, col1, line2, col2) {
+    data.frame( line1 = line1
+              ,  col1 = col1
+              , byte1 = col1
+              , line2 = line2
+              ,  col2 = col2
+              , byte2 = col2)
+}
+
+
 
 .no.exclude <- character(0)
 escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')

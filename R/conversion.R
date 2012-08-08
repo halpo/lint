@@ -288,17 +288,33 @@ valid_find <- function(x, strict = FALSE, extended = TRUE){(
 span_intersect <- function(x, y){
     if(nrow(x)==0 || nrow(y)==0) return(empty.find)
     overlaps <- data.frame(which(do_results_overlap(x,y), arr.ind=T))
+    if(nrow(overlaps)==0) return(empty.find)
     names(overlaps) <- c('x.idx', 'y.idx')
     mdply(overlaps, function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
-    data.frame(
-      line1 = min(x.row$line1, y.row$line1),
-       col1 = min( x.row$col1,  y.row$col1),
-      byte1 = min(x.row$byte1, y.row$byte1),
-      line2 = min(x.row$line2, y.row$line2),
-       col2 = min( x.row$col2,  y.row$col2),
-      byte2 = min(x.row$byte2, y.row$byte2))
+    
+    line1 = max(x.row$line1, y.row$line1)
+    col1  = if(x.row$line1 == y.row$line1) max(x.row$col1, y.row$col1)
+            else if(x.row$line1 < y.row$line1) y.row$col1
+            else x.row$col1
+    byte1 = if(x.row$line1 == y.row$line1) max(x.row$byte1, y.row$byte1)
+            else if(x.row$line1 < y.row$line1) y.row$byte1
+            else x.row$byte1
+    line2 = min(x.row$line2, y.row$line2)
+    col2  = if(x.row$line2 == y.row$line2) min(x.row$col2, y.row$col2)
+            else if(x.row$line2 > y.row$line2) y.row$col2
+            else x.row$col2
+    byte2 = if(x.row$line2 == y.row$line2) min(x.row$byte2, y.row$byte2)
+            else if(x.row$line2 > y.row$line2) y.row$byte2
+            else x.row$byte2
+    
+    data.frame( line1 = line1
+              ,  col1 =  col1
+              , byte1 = byte1
+              , line2 = line2
+              ,  col2 =  col2
+              , byte2 = byte2)
     }, x=x, y=y)[names(empty.find)]
 }
 

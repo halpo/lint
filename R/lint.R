@@ -180,6 +180,9 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     if(nrow(exclude.spans) > 0) {
         test.result <- span_difference(test.result, exclude.spans)
     }    
+    if(nrow(include.spans) > 0) {
+        test.result <- span_intersect(test.result, include.spans)
+    }    
     test.message <- with_default(test$message, test$pattern)
     str <- sprintf("Lint: %s: found on lines %s", test.message, 
                    format_problem_lines(test.result$line1))
