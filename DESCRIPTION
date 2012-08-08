@@ -1,6 +1,6 @@
 Package: lint
 Title: Tools to check R code style
-Version: 0.1
+Version: 0.1.20120807
 Date: 2012-06-19
 Author: Andrew Redd <andrew.redd@hsc.utah.edu>
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
@@ -31,3 +31,4 @@ Collate:
     'conversion.R'
     'family.R'
     'lint.R'
+    'functional.R'

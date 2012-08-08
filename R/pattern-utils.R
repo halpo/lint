@@ -60,7 +60,7 @@ NULL
 #' 
 #' @return either NULL or throws an error for use with test_that
 #' 
-test_pattern_style <- function(check, ti, only.results=F) {
+test_style <- function(check, ti, only.results=F) {
     if(is.null(ti$file)) {
         if(is.null(ti$lines)) {
             if(is.null(ti$text))
@@ -99,7 +99,7 @@ test_pattern_style <- function(check, ti, only.results=F) {
     return(invisible(NULL))
 }
 
-#' @rdname test_pattern_style
+#' @rdname test_style
 #' @param test.name the name of the test as a string.
 #' \code{autotest_style} uses the \code{.testinfo.<<stylename>>} object to 
 #' automatically test styles.  The test info object should be a list with 
@@ -110,7 +110,7 @@ test_pattern_style <- function(check, ti, only.results=F) {
 autotest_style <- function(test.name) {
 test.name <- as.character(substitute(c(test.name)))[-1]
 test_that(test.name
-    , test_pattern_style( get(test.name)
+    , test_style( get(test.name)
                         , get(paste0('.testinfo.', test.name))))
 }
 
