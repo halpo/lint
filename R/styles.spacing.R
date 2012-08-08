@@ -1,5 +1,5 @@
 {############################################################################### 
-# spacing.patterns.R
+# styles.spacing.R
 # This file is part of the R package lint.
 # 
 # Copyright 2012 Andrew Redd
