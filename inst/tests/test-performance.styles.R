@@ -25,7 +25,7 @@
 # 
 }###############################################################################
 
-context("Performance Styles")
+context("Styles/Performance")
 
 autotest_style('performance.square')
 
