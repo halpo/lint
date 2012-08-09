@@ -91,9 +91,10 @@ test_style <- function(check, ti, only.results = F) {
     pd <- 
     parse.data <- attr(p, 'data')
     
-    suppressMessages(suppressWarnings({
-        results <- dispatch_test(check, file = ti$file, lines = ti$lines
-                                , parse.data = parse.data)}))
+    results <- suppressMessages(suppressWarnings({
+        dispatch_test(check, file = ti$file, lines = ti$lines
+                                , parse.data = parse.data)
+    }))
     if(only.results) return(results)
     expect_equivalent(results, ti$results)
     return(invisible(NULL))

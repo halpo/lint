@@ -66,11 +66,11 @@ spacing.indentation.notabs <- list(pattern ="^\\t"
   , exclude.region = .no.exclude
 )
 .testinfo.spacing.indentation.notabs <- {list(
-    lines = c('    "hello world"'   # Good
-            , '\t"hi there"'        # Bad
-            , '"don\'t\t catch me"' # Good, inside string
-            , '#don\'t\t catch me'  # OK, not at beginning
-            , 'IM <-\twrong()')     # OK, not at beginning
+    lines = c('    "hello world"'    # Good
+            , '\t"hi there"'         # Bad
+            , '"don\'t\t catch me"'  # Good, inside string
+            , '#don\'t\t catch me'   # OK, not at beginning
+            , 'IM <-\twrong()')      # OK, not at beginning
   , results = data.frame(
         line1 = as.integer(c(2))
       , col1  = as.integer(c(1))
@@ -87,11 +87,11 @@ spacing.notabs <- list(pattern = "\\t"
   , exclude.region = "find_string"
 )
 .testinfo.spacing.notabs <- {list(
-    lines = c('    "hello world"'   # Good
-            , '\t"hi there"'        # Bad
-            , '"don\'t\t catch me"' # OK, inside string(excluded)
-            , "#don't\t catch me"  # Bad, inside comment, not excluded
-            , 'IM <-\twrong()')     # Bad
+    lines = c('    "hello world"'    # Good
+            , '\t"hi there"'         # Bad
+            , '"don\'t\t catch me"'  # OK, inside string(excluded)
+            , "#don't\t catch me"    # Bad, inside comment, not excluded
+            , 'IM <-\twrong()')      # Bad
   , results = data.frame(
         line1 = as.integer(c(2, 4, 5))
       , col1  = as.integer(c(1, 7, 6))
@@ -179,10 +179,22 @@ spacing.spacearoundequals <- {list(
 #' @rdname stylechecks
 #' @export
 spacing.twobeforecomments <- {list(
-    pattern = perl("^[^#]*[^\\s#]\\s{0,1}(?<!^[{}])#")
+    pattern = perl("(?<=[^\\s\\{\\}#])(#)|(?<=[^\\s]\\s)(#)")
   , exclude.region = "find_string"
   , message = "needs two spaces spacing before inline comments")
 }
-
-
-
+.testinfo.spacing.twobeforecomments <- {list(
+    lines = {c(  '{#'         # OK
+               , '}#'         # OK
+               , '# c'        # OK, start of line
+               , '1#c'        # BAD
+               , '1 #c'       # BAD
+               , '1 <- "#c"'  # OK, in string
+               )}
+  , results = {data.frame(  line1 = c(4, 5)
+                          ,  col1 = c(2, 3)
+                          , byte1 = c(2, 3)
+                          , line2 = c(4, 5)
+                          ,  col2 = c(2, 3)
+                          , byte2 = c(2, 3))}
+)}
