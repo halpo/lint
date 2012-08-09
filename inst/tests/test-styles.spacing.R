@@ -1,6 +1,6 @@
 
 ###############################################################################
-# test.lint.R
+# test-styles.spacing.R
 # (c)2012 Andrew Redd 
 # This is file part of the lint R package, a code style check package for R.
 # 
@@ -16,3 +16,4 @@ autotest_style('spacing.linelength.80')
 autotest_style('spacing.linelength.100')
 autotest_style('spacing.indentation.notabs')
 autotest_style('spacing.notabs')
+autotest_style('spacing.spacearoundinfix')

@@ -85,11 +85,13 @@ find_doc_comment <- make_class_finder(c("ROXYGEN_COMMENT"))
 #' @export
 find_string <- make_class_finder(c("STR_CONST"))
 
+#' @export
+find_symbol <- make_class_finder("SYMBOL")
 
 #' @rdname finders
 #' @export
 find_function_args <- function(..., parse.data) {
-    ftokens <- subset(parse.data, parse.data$token.desc=="FUNCTION")
+    ftokens <- subset(parse.data, parse.data$token.desc == "FUNCTION")
     ddply(ftokens, "id" , .find_function_args1
          , parse.data = parse.data)[names(empty.find)]
 }
@@ -121,4 +123,4 @@ find_call_args <- function(..., file, parse.data = attr(parser(file))) {
   parse2find(call.args)
 }
 
-
+#' @rdname finders

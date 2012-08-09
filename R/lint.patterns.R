@@ -25,15 +25,14 @@
 # 
 }###############################################################################
 
-#' @include spacing.patterns.R
-#' @include performance.patterns.R
-#' @include styles.assignment.R
-NULL
-
 #' @rdname stylechecks
 #' @export
+#' @include styles.assignment.R
+#' @include styles.performance.R
+#' @include styles.spacing.R
 lint.style <- list(
     spacing.twobeforecomments
+  , spacing.spacearoundinfix
   , spacing.spacearoundequals
   , spacing.indentation.notabs
   , spacing.linelength.80

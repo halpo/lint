@@ -26,12 +26,12 @@
 }###############################################################################
 #' @include conversion.R
 
-get_child <- function(id, parse.data, nlevels = -1L, include.parent = TRUE) {
+get_child <- function(id, parse.data, nlevels =  - 1L, include.parent = TRUE) {
 #'  @rdname get_children
 #'  @export
-  stopifnot(length(id)==1)
+  stopifnot(length(id) == 1)
   ids <- id
-  while(nlevels!=0) {
+  while(nlevels != 0) {
     nlevels <- nlevels - 1
     old.ids <- ids
     parse.sub <- subset(parse.data, parse.data$parent %in% ids)
@@ -40,7 +40,7 @@ get_child <- function(id, parse.data, nlevels = -1L, include.parent = TRUE) {
   }
   parse.sub
 }
-get_children <- function(id, parse.data, nlevels = -1L){
+get_children <- function(id, parse.data, nlevels = - 1L){
 #' Find the children of an expression
 #' 
 #'  This takes the \code{parse.data} and find all the children of the expression
@@ -70,7 +70,7 @@ get_parent <- function(id, parse.data) {
 get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
   parents <- id
   while(nancestors > 0L){
-    nancestors <- nancestors -1
+    nancestors <- nancestors - 1
     nchildren <- nchildren + 1
     parents <- get_parent(parents, parse.data)
   }
@@ -82,14 +82,14 @@ all_root_nodes <- function(pd, recurse.groups = T, group = 0){
   #' @param pd parse data from \code{\link{parser}}
   #' @param recurse.groups decend into grouped code \code{\{\}}?
   #' @param group the grouping node id
-  roots <- subset(pd, pd$parent==group)
+  roots <- subset(pd, pd$parent == group)
   if(recurse.groups) {
     groups <- is_grouping(roots$id, pd)
     if(any(groups)) {
       subs <- ldply(roots$id[groups], all_root_nodes, pd=pd
-                   , recurse.groups=recurse.groups)
+                   , recurse.groups = recurse.groups)
       rbind(roots[!groups,]
-          , subset(subs, subs$token.desc=='expr'))
+          , subset(subs, subs$token.desc == 'expr'))
     } else roots
   } else roots
   #' @return parse data with for the root nodes.
@@ -107,7 +107,7 @@ is_comment <- function(pd.row, allow.roxygen = F){
   #' check if a row is a comment
   #' @param pd.row row of parse.data
   #' @param allow.roxygen should roxygen 
-  if (nrow(pd.row)>1) return(daply(pd.row, 'id', is_comment
+  if (nrow(pd.row) > 1) return(daply(pd.row, 'id', is_comment
                            , allow.roxygen = allow.roxygen))
   pd.row$token.desc == "COMMENT" || 
   (allow.roxygen && pd.row$token.desc == "ROXYGEN_COMMENT")
@@ -119,12 +119,12 @@ is_root <- function(.id = pd$id, pd){
   #' @description
   #' A root node is defined to be a node that either has no parent 
   #' or whose parent is a grouping node.
-  if(length(.id)>1) 
+  if(length(.id) > 1) 
     return(laply(.id, is_root, pd))
-  pd.row <- pd[pd$id==.id, ]
-  if (pd.row[,'token.desc']!='expr') return(FALSE)
+  pd.row <- pd[pd$id == .id, ]
+  if (pd.row[,'token.desc'] != 'expr') return(FALSE)
   parent <- pd.row[,'parent']
-  if (parent==0 ) return(TRUE)
+  if (parent == 0 ) return(TRUE)
   if (is_grouping(parent, pd)) return(TRUE)
   return(FALSE)
 }
@@ -132,7 +132,7 @@ ascend_to_root <- function(row = pd, pd) {
   if (nrow(row) > 1) return(daply(row, 'id', ascend_to_root, pd))
   if(is_root(row$id, pd)) return(row$id)
   parent <- row$parent
-  if(parent<0) return(-parent)
+  if(parent < 0) return( - parent)
   while(!is_root(parent, pd)) 
     parent <- get_parent(parent, pd)
   return(parent)
@@ -144,12 +144,12 @@ is_grouping <- function(id = pd$id, pd){
 #' test if an id is a grouping element
   #' @param id id number in \code{pd}
   #' @param pd parse data to use to check \code{id}
-  if(length(id)>1) return(laply(id, is_grouping, pd))
-  row <- pd[pd$id==id, ]
+  if(length(id) > 1) return(laply(id, is_grouping, pd))
+  row <- pd[pd$id == id, ]
   child <- get_child(id, pd, 1)
   return(  nrow(child)
         && child$token.desc[1] == "'{'"
-        && (row$parent==0 || is_grouping(row$parent, pd)))
+        && (row$parent == 0 || is_grouping(row$parent, pd)))
   #' @return a logical indicating if the root node(s) is a grouping node or not
 }
 get_groupings <- function(pd) {

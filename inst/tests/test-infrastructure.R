@@ -71,7 +71,7 @@ test_that("lint", {
     lint.tests <- list(
           spacing.twobeforecomments  = spacing.twobeforecomments
         , spacing.spacearoundequals  = spacing.spacearoundequals
-        , spacing.indentation.notabs = spacing.indentation.notabs
+        # , spacing.indentation.notabs = spacing.indentation.notabs
         , spacing.linelength.80      = spacing.linelength.80)
     lint(check.file, lint.tests)
 })

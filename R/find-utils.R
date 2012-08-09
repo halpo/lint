@@ -42,11 +42,11 @@ strip <- function(lines, replace.data, replace.with = ''){
 #'  
 #'  @family find-functions
 #'  @export
-  if(nrow(replace.data)==0) return(lines)
+  if(nrow(replace.data) == 0) return(lines)
   replace.data <- mutate(replace.data, string = lines[replace.data$line])
   var.names <- c('string', 'start', 'end')
-  new.lines <- maply(replace.data[, var.names], `str_sub<-`, value=replace.with,
-    .expand=F)
+  new.lines <- maply(replace.data[, var.names], `str_sub<-`
+                     , value = replace.with, .expand = F)
   lines[replace.data$line] <- new.lines
   lines
 }
@@ -57,7 +57,7 @@ extract <- function(lines, replace.data) {
 #' the region(s) that were found, dropping everything else.
 #' 
 #' @export
-  if(nrow(replace.data)==0) return(lines)
+  if(nrow(replace.data) == 0) return(lines)
   replace.data <- mutate(replace.data, string = lines[replace.data$line])
   var.names <- c('string', 'start', 'end')
   maply(replace.data[, var.names], `str_sub`, .expand=F)
@@ -76,7 +76,7 @@ make_stripper <- function(finder, replace.with = ''){
     strip(lines, find2replace(find), replace.with=replace.with)  
   }
 }
-make_extractor <- function(finder){
+make_extractor <- function(finder) {
   function(
     lines,
     text =  paste(lines, collapse='\n'),
@@ -87,12 +87,12 @@ make_extractor <- function(finder){
     extract(lines, find2replace(find))
   }
 }
-.find_finder_fun1 <- function(ex){
+.find_finder_fun1 <- function(ex) {
     if(is.function(ex)) return(ex)
     stopifnot(is.character(ex))
-    fun <- try(get(ex, mode = 'function', inherits = T), silent=TRUE)
+    fun <- try(get(ex, mode = 'function', inherits = T), silent = TRUE)
     if(!inherits(fun, 'try-error')) return(fun)
-    fun <- try(match.fun(ex.region.names[i]))
+    fun <- try(match.fun(ex))
     if(!inherits(fun, 'try-error')) return(fun)
     stop(sprintf("Could not find `%s`", ex))
 }

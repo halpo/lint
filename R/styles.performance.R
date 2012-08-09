@@ -1,5 +1,5 @@
 {############################################################################### 
-# performance.patterns.R
+# styles.performance.R
 # This file is part of the R package lint.
 # 
 # Copyright 2012 Andrew Redd

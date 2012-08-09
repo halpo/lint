@@ -115,29 +115,74 @@ spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
 
 #' @rdname stylechecks
 #' @export
-spacing.spacearoundinfix <- list(
-    pattern = c(paste(no.lead.rx, '(', any.opp.rx, ')', sep='')
-              , paste('(', any.opp.rx, ')', no.lead.rx, sep=''))
+spacing.spacearoundinfix <- {list(
+    pattern = c(paste0(no.preceeding.space.rx, '(', infix.noeq, ')')
+              , paste0('(', infix.noeq, ')', no.trailing.space.rx))
   , message = "needs space around infix opperators"
-  , exclude.region = c("find_comment", "find_string")
-)
+  , exclude.region = c("find_comment", "find_string", "find_symbol")
+)}
+.testinfo.spacing.spacearoundinfix <- {list(
+    lines = {c( '1 + 1'
+             , '1+2'
+             , '1+ 2'
+             , '1 +2'
+             , '1-2'                  # 5
+             , '1*2'
+             , '1/2'
+             , '1%/%2'
+             , '1^2'
+             , '1**2'                 # 10
+             , '1%*%2'
+             , '1%o%2'
+             , '1%in%2'
+             , 'T&F'
+             , 'T&&F'                 # 15
+             , 'T|F'
+             , 'T||F'
+             , '1==2'
+             , '1>=2'
+             , '1<=2'                 # 20 
+             , '1> 2'
+             , '1< 2'
+             , '1!=2'
+             , 'if(a==b)return(TRUE)'  # 24
+             )}
+  , results = {data.frame( line1 = 2:24
+                        ,  col1 = c(rep(2, 2), 3, rep(2, 19), 5)
+                        , byte1 = c(rep(2, 2), 3, rep(2, 19), 5)
+                        , line2 = 2:24
+                        ,  col2 = c(rep(2, 2), 3, rep(2, 3), 3, 2, 3, 3, 4, 5 
+                                    , 2, 3, 2, rep(3, 4), 2, 2, 3, 6)
+                        , byte2 = c(rep(2, 2), 3, rep(2, 3), 3, 2, 3, 3, 4, 5 
+                                    , 2, 3, 2, rep(3, 4), 2, 2, 3, 6)
+                        )}
+)}
 
 #' @rdname stylechecks
 #' @export
-spacing.spacearoundequals <- list(
-    pattern = c(paste(no.lead.rx, '(=)(?![=])', sep='')
-              , paste('(?<![=!<>])(=)', no.lead.rx, sep=''))
+spacing.spacearoundequals <- {list(
+    pattern = c(paste0(no.preceeding.space.rx, '(?<![=!<>])(=)(?![=])')
+              , paste0('(?<![=!<>])(=)(?![=])', no.trailing.space.rx))
   , message = "needs space around `=`"
   , exclude.region = c("find_call_args", "find_comment", "find_string")
-)
+)}
+# .testinfo.spacing.spacearoundequals <- {list(
+    # lines = c( 'a=1'
+             # , 'f(a=1)'
+             # , 'function(){\na=1\n}'
+             # )
+    # results = data.frame( line1 = c( 1, 3)
+                           # col1 = c(
+
+
 
 #' @rdname stylechecks
 #' @export
-spacing.twobeforecomments <- list(
+spacing.twobeforecomments <- {list(
     pattern = perl("^[^#]*[^\\s#]\\s{0,1}(?<!^[{}])#")
-  , exclude.region = .no.exclude
+  , exclude.region = "find_string"
   , message = "needs two spaces spacing before inline comments")
-
+}
 
 
 

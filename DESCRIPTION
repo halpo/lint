@@ -1,7 +1,7 @@
 Package: lint
 Title: Tools to check R code style
-Version: 0.1.20120807
-Date: 2012-06-19
+Version: 0.2
+Date: 2012-08-08
 Author: Andrew Redd <andrew.redd@hsc.utah.edu>
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 Description: Tools fro checking R code for syle compliance.
@@ -21,14 +21,15 @@ Suggests:
     roxygen2
 License: GPL (>=3)
 Collate:
-    'base.patterns.R'
-    'pattern-utils.R'
-    'performance.patterns.R'
-    'spacing.patterns.R'
-    'lint.patterns.R'
+    'conversion.R'
     'find-utils.R'
     'finders.R'
-    'conversion.R'
     'family.R'
-    'lint.R'
     'functional.R'
+    'lint.R'
+    'base.patterns.R'
+    'pattern-utils.R'
+    'styles.assignment.R'
+    'styles.performance.R'
+    'styles.spacing.R'
+    'lint.patterns.R'

@@ -60,24 +60,24 @@ NULL
 #' 
 #' @return either NULL or throws an error for use with test_that
 #' 
-test_style <- function(check, ti, only.results=F) {
+test_style <- function(check, ti, only.results = F) {
     if(is.null(ti$file)) {
         if(is.null(ti$lines)) {
             if(is.null(ti$text))
                 stop(paste0("Invalid ti;"
                      , " one of file, lines, or text, must be specified."))
             else {
-                ti$file  = textConnection(ti$text)
-                ti$lines = textConnection(ti$text)
+                ti$file  <- textConnection(ti$text)
+                ti$lines <- textConnection(ti$text)
             }
         } else {
             if(is.null(ti$text)) {
-                ti$text = paste(ti$lines, collapse='\n')
-                ti$file  = textConnection(ti$text)
+                ti$text <- paste(ti$lines, collapse='\n')
+                ti$file <- textConnection(ti$text)
             } else {
                 lines <- readLines(textConnection(ti$text))
                 stopifnot(identical(lines, ti$lines))
-                ti$file  = textConnection(ti$text)
+                ti$file <- textConnection(ti$text)
             }
         }
     } else {
@@ -91,9 +91,9 @@ test_style <- function(check, ti, only.results=F) {
     pd <- 
     parse.data <- attr(p, 'data')
     
-    suppressMessages(suppressWarnings(
-        results <- dispatch_test(check, file=ti$file, lines=ti$lines
-                                , parse.data=parse.data)))
+    suppressMessages(suppressWarnings({
+        results <- dispatch_test(check, file = ti$file, lines = ti$lines
+                                , parse.data = parse.data)}))
     if(only.results) return(results)
     expect_equivalent(results, ti$results)
     return(invisible(NULL))
@@ -108,7 +108,7 @@ test_style <- function(check, ti, only.results=F) {
 #' 
 #' @export
 autotest_style <- function(test.name) {
-test.name <- as.character(substitute(c(test.name)))[-1]
+test.name <- as.character(substitute(c(test.name)))[ - 1]
 test_that(test.name
     , test_style( get(test.name)
                         , get(paste0('.testinfo.', test.name))))
@@ -122,20 +122,5 @@ make_ex_span <- function(line1, col1, line2, col2) {
               ,  col2 = col2
               , byte2 = col2)
 }
-
-
-
-.no.exclude <- character(0)
-escaped.opp <- c('+'='\\+', '*'='\\*', '/'='\\/', '^'='\\^')
-nonesc.opp  <- c('-', '<', '>')
-base.opp <- c(escaped.opp, nonesc.opp)
-extended.opp <- c('\\*\\*')
-logical.opp <- c('\\|', '\\|\\|', '&', '&&', '<=', '==', '!=', '>=')
-assign.opp  <- c('<-', '->', '<<-', '->>')
-special.opp <- c('%[^%]*%')
-all.opp    <- c(base.opp, extended.opp, logical.opp, assign.opp, special.opp)
-no.lead.rx = "[^\\s!%\\-\\+\\*\\/\\^<>=\\|&]"
-any.opp.rx <- paste(all.opp[order(desc(str_length(all.opp)))], collapse='|')
-
 
 

@@ -39,24 +39,23 @@
 #' @importFrom harvestr noattr
 #' @import foreach
 #' @import dostats
-#' @include lint.patterns.R
 #' @include conversion.R
 #' @include family.R
 #' @include finders.R
 NULL
 
 find_region <- function(region, file, lines, parse.data){
-    if (length(region)> 0L) {
+    if (length(region) > 0L) {
         fun.region <- find_finder_fun(region)
         if(is.function(fun.region)){
             fun.region(file=file, lines=lines, parse.data=parse.data)
         } else if(is.list(fun.region) && length(fun.region) == 1) {
-            fun.region[[1]](file=file, lines=lines, parse.data=parse.data)
+            fun.region[[1]](file = file, lines = lines, parse.data = parse.data)
         } else if(is.list(fun.region) && length(fun.region) >= 2) {
             l <- vector('list', length(fun.region))
             for(i in seq_along(fun.region))
-            l[[i]] <- fun.region[[i]](file=file, lines=lines
-                                      , parse.data=parse.data)
+            l[[i]] <- fun.region[[i]](file = file, lines = lines
+                                      , parse.data = parse.data)
             Reduce(merge_find, l)
         } else stop("mal-formed region!")
     } else empty.find
@@ -81,7 +80,7 @@ check_pattern <- function(pattern
   , lines
   , ...) {
   if (length(pattern) > 1) {
-    pat=NULL
+    pat <- NULL
     foreach(pat=pattern, .combine=merge_find, .multicombine=TRUE
            , .inorder=FALSE) %do% check_pattern(pat, lines, ...)
   } else {
@@ -119,9 +118,9 @@ with_default <- function(x, default) {
 #' returns the results from the test handler, which should be either a TRUE for
 #' a passed test or the lines, locations, and/or string violating the rules.
 #' @export
-dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
-  , lines=readLines(file), quiet=FALSE
-  , warning=with_default(test$warning, FALSE)
+dispatch_test <- function(test, file, parse.data = attr(parser(file), 'data')
+  , lines = readLines(file), quiet = FALSE
+  , warning = with_default(test$warning, FALSE)
 ) {
     include.spans <- find_region(with_default(test$include.region, character(0))
                           , file=file, lines=lines, parse.data=parse.data)
@@ -134,7 +133,7 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     if(nrow(include.spans) && nrow(exclude.spans))
         stop("specifying both include and exclude regions is undefined")
     
-    use.lines = with_default(test$use.lines, TRUE)
+    use.lines <- with_default(test$use.lines, TRUE)
     if (!use.lines) lines <- paste(lines, '\n', collapse='')
     
     do_message <- if(quiet){
@@ -155,7 +154,7 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
     } 
     else stop("Ill-formatted check.")
     
-    if(isTRUE(test.result) || nrow(test.result)==0) return(TRUE)
+    if(isTRUE(test.result) || nrow(test.result) == 0) return(TRUE)
     
     # check results.
     if(nrow(exclude.spans) > 0) {
@@ -175,10 +174,10 @@ dispatch_test <- function(test, file, parse.data=attr(parser(file), 'data')
 
 format_problem_lines <- function(lines, max.to.show = 5) {
     if(length(lines) <= max.to.show) 
-        return(paste(lines, collapse=', '))
+        return(paste(lines, collapse = ', '))
     paste(c( head(lines, max.to.show)
            , sprintf("+%d more.", length(lines) - max.to.show))
-         , collapse=', ')
+         , collapse = ', ')
 }
 
    
@@ -196,31 +195,31 @@ format_problem_lines <- function(lines, max.to.show = 5) {
 #' 
 #' @family lint
 #' @export
-lint <- function(file='.', style = lint.style, recurse=TRUE, text=NULL) {
-    stopifnot(missing(file)|inherits(file, 'character'))
+lint <- function(file = '.', style = lint.style, recurse = TRUE, text = NULL) {
+    stopifnot(missing(file) | inherits(file, 'character'))
     if (missing(file) && !is.null(text)) {
         stopifnot(inherits(text, "character"))
-        file = textConnection(text)
+        file <- textConnection(text)
         on.exit(close(file))
     } else {
         fi <- file.info(file)
         files <- if(any(fi$isdir)) {
             c( file[!fi$isdir]
-             , dir(file[fi$isdir], pattern=".*\\.[Rr]$"
-                  , full.names=TRUE, recursive=recurse))
+             , dir(file[fi$isdir], pattern = ".*\\.[Rr]$"
+                  , full.names = TRUE, recursive = recurse))
         } else {
             file
         }
     }
 
-    invisible(llply(files, lint_file, style=style))
+    invisible(llply(files, lint_file, style = style))
 }
 
 lint_file <- function(file, style) {
     message("Lint checking: ", file)
-    parse.data=attr(parser(file), 'data')
-    lines=readLines(file)
+    parse.data <- attr(parser(file), 'data')
+    lines <- readLines(file)
   
-    invisible(llply(style, dispatch_test, file=file
-        , parse.data=parse.data, lines=lines))
+    invisible(llply(style, dispatch_test, file = file
+        , parse.data = parse.data, lines = lines))
 }

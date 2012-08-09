@@ -1,3 +1,11 @@
+lint 0.2
+--------
+
+* Added support for generic function styles.
+* Added styles for assignment opperators, based on functional styles.
+* Added performance improvement style for squaring numbers.
+
+
 lint 0.1
 --------
 

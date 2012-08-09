@@ -61,3 +61,41 @@ numeric.all.constant <- c(real.constant, exp.constant, int.constant
 
 #' @rdname base-patterns
 numeric.constant <- paste0('(', paste(numeric.all.constant, collapse='|'), ')')
+
+
+.no.exclude <- character(0)
+rx.lb.no.opp <- '(?<![\\-+*<>=!%])'
+rx.la.no.opp <- '(?![\\-+*<>=!%]'
+arith.opp <- c( '+'  = '\\+'
+              , '*'  = '(?<![*])\\*(?![*])'
+              , '/'  = '\\/'
+              , '^'  = '\\^'
+              , '-'  = '(?<![<])(-)(?![>])'
+              , '**' = '\\*\\*')
+logical.opp <- c(  '|' = '(?<![|])\\|(?![|])'
+                ,  '<' = '(?<![<-])(>)(?![>=])'
+                ,  '>' = '(?<![<])(<)(?![>=-])'
+                ,  '&' = '(?<![&])&(?![&])'
+                , '||' = '\\|\\|'
+                , '&&' = '&&'
+                , '<=' = '<='
+                , '==' = '=='
+                , '!=' = '!='
+                , '>=' = '>='
+                )
+assign.opp  <- c( '='   = '(?<![<>=!])(=)(?!=)'
+                , '<-'  = '(?<![<])(<-)'
+                , '->'  = '(->)(?![>])'
+                , '<<-' = '<<-'
+                , '->>' = '->>')
+special.opp <- c('%[^%]*%')
+all.opp    <- c(arith.opp, logical.opp, assign.opp, special.opp)
+infix.noeq <- setdiff(all.opp, all.opp['='])
+no.lead.rx <- "(&<[^\\s\\^\\-!%+*/<>=\\|&)"
+no.preceeding.space.rx <- "(?<!\\s)"
+no.trailing.space.rx   <- "(?!\\s)"
+
+
+
+
+
