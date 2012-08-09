@@ -1,7 +1,7 @@
 Package: lint
 Title: Tools to check R code style
 Version: 0.2
-Date: 2012-08-08
+Date: 2012-08-09
 Author: Andrew Redd <andrew.redd@hsc.utah.edu>
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 Description: Tools fro checking R code for syle compliance.
