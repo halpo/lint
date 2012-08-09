@@ -85,6 +85,7 @@ find_doc_comment <- make_class_finder(c("ROXYGEN_COMMENT"))
 #' @export
 find_string <- make_class_finder(c("STR_CONST"))
 
+#' @rdname finders
 #' @export
 find_symbol <- make_class_finder("SYMBOL")
 
@@ -122,5 +123,3 @@ find_call_args <- function(..., file, parse.data = attr(parser(file))) {
     llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
   parse2find(call.args)
 }
-
-#' @rdname finders
