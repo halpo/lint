@@ -64,8 +64,8 @@ test_style <- function(check, ti, only.results = F) {
     if(is.null(ti$file)) {
         if(is.null(ti$lines)) {
             if(is.null(ti$text))
-                stop(paste0("Invalid ti;"
-                     , " one of file, lines, or text, must be specified."))
+                stop("Invalid ti;"
+                     , " one of file, lines, or text, must be specified.")
             else {
                 ti$file  <- textConnection(ti$text)
                 ti$lines <- textConnection(ti$text)
@@ -112,7 +112,7 @@ autotest_style <- function(test.name) {
 test.name <- as.character(substitute(c(test.name)))[ - 1]
 test_that(test.name
     , test_style( get(test.name)
-                        , get(paste0('.testinfo.', test.name))))
+                        , get(paste('.testinfo.', test.name, sep=''))))
 }
 
 make_ex_span <- function(line1, col1, line2, col2) {
