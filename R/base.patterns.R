@@ -34,6 +34,13 @@
 #' @exportPattern .*\\.constant
 NULL
 
+if(getRversion() < "2.15.0") {
+	paste0 <- function(..., collapse=NULL) {
+		paste(..., collapse=collapse, sep='')
+	}
+}
+
+
 #' @rdname base-patterns
 start.characters <- "[\\p{L}\\.]"
 
@@ -60,7 +67,7 @@ numeric.all.constant <- c(real.constant, exp.constant, int.constant
                           , complex.constant)
 
 #' @rdname base-patterns
-numeric.constant <- paste0('(', paste(numeric.all.constant, collapse='|'), ')')
+numeric.constant <- paste('(', paste(numeric.all.constant, collapse='|'), ')')
 
 
 .no.exclude <- character(0)
