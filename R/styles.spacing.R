@@ -166,13 +166,23 @@ spacing.spacearoundequals <- {list(
   , message = "needs space around `=`"
   , exclude.region = c("find_call_args", "find_comment", "find_string")
 )}
-# .testinfo.spacing.spacearoundequals <- {list(
-    # lines = c( 'a=1'
-             # , 'f(a=1)'
-             # , 'function(){\na=1\n}'
-             # )
-    # results = data.frame( line1 = c( 1, 3)
-                           # col1 = c(
+.testinfo.spacing.spacearoundequals <- {list(
+    lines = c( 'a=1'                     # Bad
+             , 'f(a=1)'                  # ok
+             , 'function(){'             # 
+             , '    a=1'                 # bad
+             , '}'                       # 
+             , 'print(paste("x =", x))'  # ok
+             , 'print(paste("x =",'      # ok
+             ,  'x))'                    # 
+             )
+  , results = data.frame( line1 = c(1, 4)
+                        ,  col1 = c(2, 6)
+                        , byte1 = c(2, 6)
+                        , line2 = c(1, 4)
+                        ,  col2 = c(2, 6)
+                        , byte2 = c(2, 6)  )
+)}
 
 
 

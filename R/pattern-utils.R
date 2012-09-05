@@ -101,18 +101,23 @@ test_style <- function(check, ti, only.results = F) {
 }
 
 #' @rdname test_style
-#' @param test.name the name of the test as a string.
+#' @param check.name the name of the test as a string.
+#' @param only.results
+#' 
 #' \code{autotest_style} uses the \code{.testinfo.<<stylename>>} object to 
 #' automatically test styles.  The test info object should be a list with 
 #' \code{$lines} and \code{$results}. The '\code{$lines}' element is the input 
 #' lines and \code{$results} is the find formated data.frame.
 #' 
 #' @export
-autotest_style <- function(test.name) {
-test.name <- as.character(substitute(c(test.name)))[ - 1]
-test_that(test.name
-    , test_style( get(test.name)
-                        , get(paste0('.testinfo.', test.name))))
+autotest_style <- function(check.name, results=FALSE) {
+    check.name <- as.character(substitute(c(check.name)))[ - 1]
+    check <- get(check.name)
+    ti <- get(paste0('.testinfo.', check.name))
+    if(results)
+        test_style( check, ti, results)
+    else 
+        test_that(check.name, test_style( check, ti))
 }
 
 make_ex_span <- function(line1, col1, line2, col2) {

@@ -262,14 +262,54 @@ merge_find <- function(...){
 .merge_by_idx1 <- function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
-    data.frame(
-      line1 = min(x.row$line1, y.row$line1),
-       col1 = min( x.row$col1,  y.row$col1),
-      byte1 = min(x.row$byte1, y.row$byte1),
-      line2 = min(x.row$line2, y.row$line2),
-       col2 = min( x.row$col2,  y.row$col2),
-      byte2 = min(x.row$byte2, y.row$byte2))
+    cbind( rename(min_find_2(x.row[1:3], y.row[1:3]), .names1)
+         , rename(max_find_2(x.row[4:6], y.row[4:6]), .names2) )
 }
+.names1 <- c(line='line1', col='col1', byte='byte1')
+.names2 <- c(line='line2', col='col2', byte='byte2')
+min_find <- function( a.line, a.col, a.byte
+        , b.line, b.col, b.byte ) {
+    if(a.line == b.line){
+        data.frame( line = a.line
+                  , col  = min(a.col, b.col)
+                  , byte = min(a.byte, b.byte))
+    } else 
+    if(a.line < b.line){
+        data.frame( line = a.line
+                  , col  = a.col
+                  , byte = a.byte)
+    } else 
+    if(a.line > b.line) {
+        data.frame( line = b.line
+                  , col  = b.col
+                  , byte = b.byte)
+    } else stop("Seriously?! how did you get here?")
+}
+min_find_2<- function(x, y)
+    min_find(x[[1]], x[[2]], x[[3]], y[[1]], y[[2]], y[[3]])
+max_find<- function( a.line, a.col, a.byte
+        , b.line, b.col, b.byte ) {
+    if(a.line == b.line){
+        data.frame( line = a.line
+                  , col  = max(a.col, b.col)
+                  , byte = max(a.byte, b.byte))
+    } else 
+    if(a.line > b.line){
+        data.frame( line = a.line
+                  , col  = a.col
+                  , byte = a.byte)
+    } else 
+    if(a.line < b.line) {
+        data.frame( line = b.line
+                  , col  = b.col
+                  , byte = b.byte)
+    } else stop("Seriously!? how did you get here?")
+}
+max_find_2<- function(x, y)
+    max_find(x[[1]], x[[2]], x[[3]], y[[1]], y[[2]], y[[3]])
+
+
+
 
 valid_find <- function(x, strict = FALSE, extended = TRUE){(
     is(x,'data.frame')

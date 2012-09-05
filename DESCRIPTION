@@ -4,9 +4,9 @@ Version: 0.2
 Date: 2012-08-09
 Author: Andrew Redd <andrew.redd@hsc.utah.edu>
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
-Description: Tools fro checking R code for syle compliance.
+Description: Tools for checking R code for style compliance.
     Tools for creating style compliance tests.
-    A suite of prebuilt tests is provided.
+    A suite of pre-built tests is provided.
 Depends:
     R (>= 2.13)
 Imports:
