@@ -199,7 +199,8 @@ lint <- function(file = '.', style = lint.style, recurse = TRUE, text = NULL) {
     stopifnot(missing(file) | inherits(file, 'character'))
     if (missing(file) && !is.null(text)) {
         stopifnot(inherits(text, "character"))
-        file <- textConnection(text)
+        file <- textConnection(text, 'rt', local=TRUE)
+        files <- list(file)
         on.exit(close(file))
     } else {
         fi <- file.info(file)
@@ -216,9 +217,10 @@ lint <- function(file = '.', style = lint.style, recurse = TRUE, text = NULL) {
 }
 
 lint_file <- function(file, style) {
-    message("Lint checking: ", file)
-    parse.data <- attr(parser(file), 'data')
+    message("Lint checking: ", ifelse(inherits(file, 'character')
+                                     , file, class(file)[[1]]))
     lines <- readLines(file)
+    parse.data <- attr(parser(text=lines), 'data')
   
     invisible(llply(style, dispatch_test, file = file
         , parse.data = parse.data, lines = lines))

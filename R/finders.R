@@ -108,6 +108,7 @@ find_function_args <- function(..., parse.data) {
 find_function_body <- function(..., lines, file
                               , parse.data = attr(parser(file))) {
   f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")
+  if(!nrow(f.nodes)) return(empty.find)
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
   body.contents <- find_children(body.parents, parse.data)
   parse2find(body.contents)
@@ -119,6 +120,7 @@ find_function_body <- function(..., lines, file
 find_call_args <- function(..., file, parse.data = attr(parser(file))) {
   call.nodes <- subset(parse.data, 
     parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
+  if(!nrow(call.nodes)) return(empty.find)
   call.args <- 
     llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
   parse2find(call.args)
