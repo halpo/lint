@@ -10,12 +10,12 @@
 # 
 # 
 ################################################################################
-context("Patterns")
+context("Styles/Spacing")
 
 autotest_style('spacing.linelength.80')
 autotest_style('spacing.linelength.100')
 autotest_style('spacing.indentation.notabs')
 autotest_style('spacing.notabs')
-autotest_style('spacing.spacearoundequals', T)
-autotest_style('spacing.spacearoundinfix')
+autotest_style('spacing.spacearoundequals')
+autotest_style('spacing.spacearoundinfix', T)
 autotest_style('spacing.twobeforecomments')

@@ -116,46 +116,71 @@ spacing.spaceaftercomma <- list(pattern = ",[^\\s]"
 #' @rdname stylechecks
 #' @export
 spacing.spacearoundinfix <- {list(
-    pattern = c(paste0(no.preceeding.space.rx, '(', infix.noeq, ')')
-              , paste0('(', infix.noeq, ')', no.trailing.space.rx))
+    pattern = c(paste0(no.preceeding.space.rx, no.preceeding.percent
+                      , '(', infix.noeq, ')')
+              , paste0( '(', infix.noeq, ')'
+                      , no.trailing.percent, no.trailing.space.rx))
   , message = "needs space around infix opperators"
   , exclude.region = c("find_comment", "find_string", "find_symbol")
 )}
 .testinfo.spacing.spacearoundinfix <- {list(
-    lines = {c( '1 + 1'
-             , '1+2'
-             , '1+ 2'
-             , '1 +2'
-             , '1-2'                  # 5
-             , '1*2'
-             , '1/2'
-             , '1%/%2'
-             , '1^2'
-             , '1**2'                 # 10
-             , '1%*%2'
-             , '1%o%2'
-             , '1%in%2'
-             , 'T&F'
-             , 'T&&F'                 # 15
-             , 'T|F'
-             , 'T||F'
-             , '1==2'
-             , '1>=2'
-             , '1<=2'                 # 20 
-             , '1> 2'
-             , '1< 2'
-             , '1!=2'
-             , 'if(a==b)return(TRUE)'  # 24
+    lines = {c( '1 + 1'                #  1 #
+             , '1+2'                   #    #
+             , '1+ 2'                  #    #
+             , '1 +2'                  #    #
+             , '1-2'                   #  5 #
+             , '1*2'                   #    #
+             , '1/2'                   #    #
+             , '1%/%2'                 #    #
+             , '1^2'                   #    #
+             , '1**2'                  # 10 #
+             , '1%*%2'                 #    #
+             , '1%o%2'                 #    #
+             , '1%in%2'                #    #
+             , 'T&F'                   #    #
+             , 'T&&F'                  # 15 #
+             , 'T|F'                   #    #
+             , 'T||F'                  #    #
+             , '1==2'                  #    #
+             , '1>=2'                  #    #
+             , '1<=2'                  # 20 # 
+             , '1> 2'                  #    #
+             , '1< 2'                  #    #
+             , '1!=2'                  #    #
+             , 'if(a==b)return(TRUE)'  #    #
+             , 'r1 <- x %*% y'         # 25 #  OK
+             , 'r2 <- x %/% y'         #    #  OK
+             , 'r3 <- x %o% y'         #    #  OK
+             , 'r4 <- x %in% y'        #    #  OK
+             , 'r5 <- x %myopp% y'     #    #  OK
+             , 'r6 <- x %% y'          # 30 #  OK
              )}
-  , results = {data.frame( line1 = 2:24
-                        ,  col1 = c(rep(2, 2), 3, rep(2, 19), 5)
-                        , byte1 = c(rep(2, 2), 3, rep(2, 19), 5)
-                        , line2 = 2:24
-                        ,  col2 = c(rep(2, 2), 3, rep(2, 3), 3, 2, 3, 3, 4, 5 
-                                    , 2, 3, 2, rep(3, 4), 2, 2, 3, 6)
-                        , byte2 = c(rep(2, 2), 3, rep(2, 3), 3, 2, 3, 3, 4, 5 
-                                    , 2, 3, 2, rep(3, 4), 2, 2, 3, 6)
-                        )}
+  , results = {rbind.fill(NULL
+#            line1, col1, byte1, line2, col2, byte2
+, .rr(    2,    2,     2,     2,    2,     2)
+, .rr(    3,    2,     2,     3,    2,     2)
+, .rr(    4,    3,     3,     4,    3,     3)
+, .rr(    5,    2,     2,     5,    2,     2)
+, .rr(    6,    2,     2,     6,    2,     2)
+, .rr(    7,    2,     2,     7,    2,     2)
+, .rr(    8,    2,     2,     8,    3,     3)
+, .rr(    9,    2,     2,     9,    2,     2)
+, .rr(   10,    2,     2,    10,    3,     3)
+, .rr(   11,    2,     2,    11,    3,     3)
+, .rr(   12,    2,     2,    12,    4,     4)
+, .rr(   13,    2,     2,    13,    5,     5)
+, .rr(   14,    2,     2,    14,    2,     2)
+, .rr(   15,    2,     2,    15,    3,     3)
+, .rr(   16,    2,     2,    16,    2,     2)
+, .rr(   17,    2,     2,    17,    3,     3)
+, .rr(   18,    2,     2,    18,    3,     3)
+, .rr(   19,    2,     2,    19,    3,     3)
+, .rr(   20,    2,     2,    20,    3,     3)
+, .rr(   21,    2,     2,    21,    2,     2)
+, .rr(   22,    2,     2,    22,    2,     2)
+, .rr(   23,    2,     2,    23,    3,     3)
+, .rr(   24,    5,     5,    24,    6,     6)
+)}
 )}
 
 #' @rdname stylechecks

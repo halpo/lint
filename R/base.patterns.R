@@ -101,7 +101,8 @@ infix.noeq <- setdiff(all.opp, all.opp['='])
 no.lead.rx <- "(&<[^\\s\\^\\-!%+*/<>=\\|&)"
 no.preceeding.space.rx <- "(?<!\\s)"
 no.trailing.space.rx   <- "(?!\\s)"
-
+no.preceeding.percent  <- "(?<!%)"
+no.trailing.percent    <- "(?!%)"
 
 
 
