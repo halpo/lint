@@ -91,6 +91,11 @@ find_symbol <- make_class_finder("SYMBOL")
 
 #' @rdname finders
 #' @export
+find_number <- make_class_finder("NUM_CONST")
+
+
+#' @rdname finders
+#' @export
 find_function_args <- function(..., parse.data) {
     ftokens <- subset(parse.data, parse.data$token.desc == "FUNCTION")
     ddply(ftokens, "id" , .find_function_args1

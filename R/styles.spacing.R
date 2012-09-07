@@ -121,7 +121,7 @@ spacing.spacearoundinfix <- {list(
               , paste0( '(', infix.noeq, ')'
                       , no.trailing.percent, no.trailing.space.rx))
   , message = "needs space around infix opperators"
-  , exclude.region = c("find_comment", "find_string", "find_symbol")
+  , exclude.region = c("find_comment", "find_string", "find_symbol", "find_number")
 )}
 .testinfo.spacing.spacearoundinfix <- {list(
     lines = {c( '1 + 1'                #  1 #
@@ -154,6 +154,8 @@ spacing.spacearoundinfix <- {list(
              , 'r4 <- x %in% y'        #    #  OK
              , 'r5 <- x %myopp% y'     #    #  OK
              , 'r6 <- x %% y'          # 30 #  OK
+             , 'a <- 1e-3'             #    #  OK
+             , 'b <- 2E+4'             #    #  OK
              )}
   , results = {rbind.fill(NULL
 #            line1, col1, byte1, line2, col2, byte2
@@ -163,10 +165,10 @@ spacing.spacearoundinfix <- {list(
 , .rr(    5,    2,     2,     5,    2,     2)
 , .rr(    6,    2,     2,     6,    2,     2)
 , .rr(    7,    2,     2,     7,    2,     2)
-, .rr(    8,    2,     2,     8,    3,     3)
+, .rr(    8,    2,     2,     8,    4,     4)
 , .rr(    9,    2,     2,     9,    2,     2)
 , .rr(   10,    2,     2,    10,    3,     3)
-, .rr(   11,    2,     2,    11,    3,     3)
+, .rr(   11,    2,     2,    11,    4,     4)
 , .rr(   12,    2,     2,    12,    4,     4)
 , .rr(   13,    2,     2,    13,    5,     5)
 , .rr(   14,    2,     2,    14,    2,     2)
