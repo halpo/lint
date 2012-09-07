@@ -156,9 +156,11 @@ spacing.spacearoundinfix <- {list(
              , 'r6 <- x %% y'          # 30 #  OK
              , 'a <- 1e-3'             #    #  OK
              , 'b <- 2E+4'             #    #  OK
+             , '1 +'                   #    #  OK 
+             , '1 + 1'                 #    #  OK 
              )}
   , results = {rbind.fill(NULL
-#            line1, col1, byte1, line2, col2, byte2
+#     line1, col1, byte1, line2, col2, byte2
 , .rr(    2,    2,     2,     2,    2,     2)
 , .rr(    3,    2,     2,     3,    2,     2)
 , .rr(    4,    3,     3,     4,    3,     3)

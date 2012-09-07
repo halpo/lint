@@ -78,7 +78,8 @@ arith.opp <- c( '+'  = '\\+'
               , '/'  = '\\/'
               , '^'  = '\\^'
               , '-'  = '(?<![<])(-)(?![>])'
-              , '**' = '\\*\\*')
+              , '**' = '\\*\\*'
+              )
 logical.opp <- c(  '|' = '(?<![|])\\|(?![|])'
                 ,  '<' = '(?<![<-])(>)(?![>=])'
                 ,  '>' = '(?<![<])(<)(?![>=-])'
@@ -94,16 +95,14 @@ assign.opp  <- c( '='   = '(?<![<>=!])(=)(?!=)'
                 , '<-'  = '(?<![<])(<-)'
                 , '->'  = '(->)(?![>])'
                 , '<<-' = '<<-'
-                , '->>' = '->>')
+                , '->>' = '->>'
+                )
 special.opp <- c('%[^%]*%')
 all.opp    <- c(arith.opp, logical.opp, assign.opp, special.opp)
 infix.noeq <- setdiff(all.opp, all.opp['='])
 no.lead.rx <- "(&<[^\\s\\^\\-!%+*/<>=\\|&)"
-no.preceeding.space.rx <- "(?<!\\s)"
-no.trailing.space.rx   <- "(?!\\s)"
+no.preceeding.space.rx <- "(?<=[^\\s])"
+no.trailing.space.rx   <- "(?=[^\\s])"
 no.preceeding.percent  <- "(?<!%)"
 no.trailing.percent    <- "(?!%)"
-
-
-
 
