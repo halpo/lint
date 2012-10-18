@@ -120,7 +120,7 @@ spacing.spacearoundinfix <- {list(
                       , '(', infix.noeq, ')')
               , paste0( '(', infix.noeq, ')'
                       , no.trailing.percent, no.trailing.space.rx))
-  , message = "needs space around infix opperators"
+  , message = "needs space around infix operators"
   , exclude.region = c("find_comment", "find_string", "find_symbol", "find_number")
 )}
 .testinfo.spacing.spacearoundinfix <- {list(
