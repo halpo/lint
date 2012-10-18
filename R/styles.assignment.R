@@ -28,7 +28,7 @@
 #' @title Assignemnt Style
 #' @name assignment-styles
 #' @docType data 
-#' @format style tests for assignment opperators.
+#' @format style tests for assignment operators.
 #'  
 #' @include finders.R
 #' @exportPattern styles\\.assignment\\..*
