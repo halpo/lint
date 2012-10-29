@@ -1,4 +1,4 @@
-# spacing around infix opperators +, -, <, >, etc.
+# spacing around infix operators +, -, <, >, etc.
 { # should catch
 # ------------
 { # Arithmatic operators
