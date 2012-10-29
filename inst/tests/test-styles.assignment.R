@@ -9,7 +9,7 @@
 # 
 }###############################################################################
 
-context("Styles/Assignemnt")
+context("Styles/Assignment")
 autotest_style('styles.assignment.noeq')
 autotest_style('styles.assignment.norightassign')
 autotest_style('styles.assignment.notinfcall')
