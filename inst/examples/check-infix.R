@@ -1,4 +1,4 @@
-# spacing around infix opperators +, -, <, >, etc.
+# spacing around infix operators +, -, <, >, etc.
 { # should catch
 # ------------
 { # Arithmatic operators
@@ -22,7 +22,7 @@ a<<-1 # double left assign
 1<=1  # less or equal
 1==1  # equal
 1!=1  # not equal
-1>=1  # Greater or equal
+1>=1  # greater or equal
 1>1   # greater 
 T|F   # binary or
 T||F  # logical or

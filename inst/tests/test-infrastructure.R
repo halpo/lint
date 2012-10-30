@@ -34,7 +34,7 @@ test_that("check_pattern", {
   expect_that(check_pattern(lines, "123")$line1, is_equivalent_to(1L)
     , 'find the right line')
   expect_that(valid_find(check_pattern(lines, "123")), is_true()
-    , 'return type is a valid find formated data.frame')
+    , 'return type is a valid find formatted data.frame')
 })
 test_that("dispatch_test", {
   file <- 
