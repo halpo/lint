@@ -62,7 +62,7 @@ spacing.linelength.100 <- {list(pattern = "^.{100}\\s*[^\\s]"
 #' @rdname stylechecks
 #' @export
 spacing.indentation.notabs <- list(pattern ="^\\t"
-  , message = "tabs not allowed for intendation"
+  , message = "tabs not allowed for indentation"
   , exclude.region = .no.exclude
 )
 .testinfo.spacing.indentation.notabs <- {list(
