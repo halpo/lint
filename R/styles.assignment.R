@@ -25,7 +25,7 @@
 # 
 }###############################################################################
 
-#' @title Assignemnt Style
+#' @title Assignment Style
 #' @name assignment-styles
 #' @docType data 
 #' @format style tests for assignment operators.
@@ -38,7 +38,7 @@ NULL
 #' @aliases styles.assignment.noeq
 styles.assignment.noeq <- {list(
     f = make_class_finder('EQ_ASSIGN')
-  , message = "Equal sign assignemnts"
+  , message = "Equal sign assignments"
   , exclude.region = .no.exclude
 )}
 .testinfo.styles.assignment.noeq <- {list(
@@ -54,7 +54,7 @@ styles.assignment.noeq <- {list(
 #' @rdname assignment-styles
 styles.assignment.norightassign <- {list(
     f = make_class_finder('RIGHT_ASSIGN')
-  , message = "Right assignemnt not allowed"
+  , message = "Right assignment not allowed"
   , exclude.region = .no.exclude
 )}
 .testinfo.styles.assignment.norightassign <- {list(
