@@ -16,7 +16,7 @@
 # Foundation, either version 3 of the License, or (at your option) any later 
 # version.
 # 
-# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
@@ -133,7 +133,7 @@ empty.find <- {data.frame(
 #' @rdname conversion
 #' @details parse2find
 #'  Expects either a parse formatted data.frame or a list of data.frames.
-#'  each data.frame is a contiguous region that is collaped into a single
+#'  each data.frame is a contiguous region that is collapsed into a single
 #'  find formatted data.frame, one row for each region.
 #'  
 #' @export
@@ -221,7 +221,7 @@ do_results_overlap <- function(x, y = x, strict.contains = FALSE) {
         z[i, j] <- do_results_overlap_1(x[[i]], y[[j]]
                                         , strict.contains = strict.contains)
     return(z)
-    #' @return logical matrix of dimention \code{nrow(x)} by \nrow{nrow(y)}.
+    #' @return logical matrix of dimension \code{nrow(x)} by \nrow{nrow(y)}.
 }
 
 merge_find <- function(...){
@@ -365,7 +365,7 @@ span_difference <- function(x, y, strict = FALSE) {
 #' @param x find formatted data.frame
 #' @param y find formatted data.frame
 #' @param strict should a strict difference be taken or only 
-#'               those of x not completly contained in y (default).
+#'               those of x not completely contained in y (default).
     if(nrow(x) == 0 || nrow(y) == 0) return(x)
     overlaps <- do_results_overlap(x,y, TRUE)
     xo <- apply(overlaps, 1, any)

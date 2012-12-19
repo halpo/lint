@@ -16,7 +16,7 @@
 # Foundation, either version 3 of the License, or (at your option) any later 
 # version.
 # 
-# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
@@ -31,7 +31,7 @@
 #' 
 #'  Finders are helper functions that assist in the definition of style checks.
 #'  These function assist by finding the regions that are either included 
-#'  or excluded from check.  Each finder musta accept the following arguments
+#'  or excluded from check.  Each finder must accept the following arguments
 #'  and as well as the variadic argument \code{...}.
 #'  \enumerate{
 #'      \item file
@@ -41,7 +41,7 @@
 #'  Order of arguments is not guaranteed so explicit names use is required, 
 #'  since use of named arguments is guaranteed.
 #'  In addition other arguments may be added later.
-#'  Each finder is expected to retun a \link[lint:conversion]{find} 
+#'  Each finder is expected to return a \link[lint:conversion]{find} 
 #'  formated data.frame.
 #'  
 #'  Custom finders are encouraged, but finders for common classes are 
@@ -51,7 +51,7 @@
 #' @param file the file being examined.
 #' @param lines the lines being examined.
 #' @param parse.data data from \code{\link{parser}}
-#' @param ... extra args that include \code{file}, and \code{lines}
+#' @param ... extra arguments that include \code{file}, and \code{lines}
 #' 
 #' @export
 make_class_finder <- function(classes){

@@ -16,7 +16,7 @@
 # Foundation, either version 3 of the License, or (at your option) any later 
 # version.
 # 
-# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
@@ -80,7 +80,7 @@ get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
 all_root_nodes <- function(pd, recurse.groups = T, group = 0){
 #' Find all root node from parse data
   #' @param pd parse data from \code{\link{parser}}
-  #' @param recurse.groups decend into grouped code \code{\{\}}?
+  #' @param recurse.groups descend into grouped code \code{\{\}}?
   #' @param group the grouping node id
   roots <- subset(pd, pd$parent == group)
   if(recurse.groups) {

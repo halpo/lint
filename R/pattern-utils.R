@@ -16,7 +16,7 @@
 # Foundation, either version 3 of the License, or (at your option) any later 
 # version.
 # 
-# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
@@ -56,7 +56,7 @@ NULL
 #' @param check a style check
 #' @param ti the test info data
 #' @param only.results if true returns results but does not check for
-#'                     correspondance.  For debugging.
+#'                     correspondence.  For debugging.
 #' 
 #' @return either NULL or throws an error for use with test_that
 #' 

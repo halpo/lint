@@ -16,7 +16,7 @@
 # Foundation, either version 3 of the License, or (at your option) any later 
 # version.
 # 
-# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
@@ -30,7 +30,7 @@
 strip <- function(lines, replace.data, replace.with = ''){
 #'  Strip a region from the text
 #'  
-#'  The \code{strip} fucntion removes the region defined in \code{replace.data} 
+#'  The \code{strip} function removes the region defined in \code{replace.data} 
 #'  from the \code{lines}
 #'  
 #'  @param lines the lines with the text.  Results from \code{\link{readLines}}

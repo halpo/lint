@@ -16,7 +16,7 @@
 # Foundation, either version 3 of the License, or (at your option) any later 
 # version.
 # 
-# dostats is distributed in the hope that it will be useful, but WITHOUT ANY 
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # 
@@ -57,7 +57,7 @@ find_region <- function(region, file, lines, parse.data){
             l[[i]] <- fun.region[[i]](file = file, lines = lines
                                       , parse.data = parse.data)
             Reduce(merge_find, l)
-        } else stop("mal-formed region!")
+        } else stop("malformed region!")
     } else empty.find
 }
 
@@ -68,7 +68,7 @@ find_region <- function(region, file, lines, parse.data){
 #' 
 #' @param lines character vector of lines of text to check, output from 
 #'   \code{\link{readLines}}.
-#' @param pattern perl compatible regular expression.
+#' @param pattern Perl compatible regular expression.
 #' @param ... discarded.
 #' @return returns an integer vector of the problem lines if problems were 
 #'   found. otherwise returns TRUE if the lines pass the check. 
