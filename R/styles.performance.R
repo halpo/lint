@@ -47,7 +47,7 @@ performance.square <- {list(
     lines = c('2*2'
             , 'a*a'
             , 'a^2')
-  , results = data.frame(line1=2, col1=1, byte1=1, line2=2, col2=3, byte2=3)
+  , results = data.frame(line1=2, col1=1, line2=2, col2=3)
 )}
 
 

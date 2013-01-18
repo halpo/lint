@@ -10,7 +10,7 @@ cat(my.msg, '\n')
 }
 "
 lines <- readLines(textConnection(text))
-(p <- attr(parser(text=text), 'data'))
+(p <- getParseData(parse(text=text)))
 (l <- str_locate('Hello', string=lines))
 
 (f <- locate2find(l))

@@ -122,10 +122,8 @@ autotest_style <- function(check.name, only.results=FALSE) {
 make_ex_span <- function(line1, col1, line2, col2) {
     data.frame( line1 = line1
               ,  col1 = col1
-              , byte1 = col1
               , line2 = line2
-              ,  col2 = col2
-              , byte2 = col2)
+              ,  col2 = col2)
 }
 
 #' @name rr
@@ -135,12 +133,10 @@ make_ex_span <- function(line1, col1, line2, col2) {
 #' A convenience utility for creating the results rows for autotest style test 
 #' info
 #' @keywords internal
-.rr <- function(line1, col1, byte1, line2, col2, byte2){
+.rr <- function(line1, col1, line2, col2){
     data.frame( line1=line1
               ,  col1=col1
-              , byte1=byte1
               , line2=line2
-              ,  col2=col2
-              , byte2=byte2)
+              ,  col2=col2  )
 }
 

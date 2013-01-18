@@ -59,16 +59,14 @@
 #'   \enumerate{
 #'       \item \code{line1} starting line of the expression.
 #'       \item \code{col1} starting column.
-#'       \item \code{byte1} starting byte, the same as col1 for ascii.
 #'       \item \code{line2} ending line of the expression.
 #'       \item \code{col2} ending column.
-#'       \item \code{byte2} ending byte.
 #'       \item \code{token} the token class number.
 #'       \item \code{id} the unique id of the expression
 #'       \item \code{parent} the parent of the expression, 0 if none.
 #'       \item \code{top_level} top_level, which top level expression is the 
 #'                              expression associated with
-#'       \item \code{token.desc} class name of the token.
+#'       \item \code{token} class name of the token.
 #'       \item \code{terminal} is this a terminal node? i.e. has no child nodes.
 #'       \item \code{text}  the actual text of the expression.
 #'   }
@@ -81,8 +79,8 @@
 #'  @section Find data structure:
 #'   For the purposes of the data the find data consists of a single row 
 #'   for each section/region with the first 6 columns of parse.data;
-#'   the columns \code{line1}, \code{col1}, \code{byte1}, \code{line2}, 
-#'   \code{col2}, and \code{byte2}, marking the beginning and end of a section.
+#'   the columns \code{line1}, \code{col1}, \code{line2}, and
+#'   \code{col2}, marking the beginning and end of a section.
 #'   This is a condensation of the parse data which would have the same columns
 #'   as well as additional columns, and a row for each expression in the region.
 #'  
@@ -125,32 +123,33 @@ NULL
 empty.find <- {data.frame(
       'line1' = integer(0L)
     , 'col1'  = integer(0L)
-    , 'byte1' = integer(0L)
     , 'line2' = integer(0L)
-    , 'col2'  = integer(0L)
-    , 'byte2' = integer(0L))}
+    , 'col2'  = integer(0L) )}
 
 #' @rdname conversion
 #' @details parse2find
+#'  Deprecated.  Due to the changes in R version 3.0 this function is no longer
+#'  necessary
+#'  
 #'  Expects either a parse formatted data.frame or a list of data.frames.
 #'  each data.frame is a contiguous region that is collapsed into a single
 #'  find formatted data.frame, one row for each region.
 #'  
 #' @export
 parse2find <- function(parse.data) {
-  col1 <- byte1 <- NULL
+  col1 <- NULL
   if (!inherits(parse.data, 'data.frame') && inherits(parse.data, 'list')) {
     return(ldply(parse.data, parse2find)[names(empty.find)])
   }
   if(nrow(parse.data) == 0) return(empty.find)
-  names1 <- c('line1', 'col1', 'byte1')
-  names2 <- c('line2', 'col2', 'byte2')
+  names1 <- c('line1', 'col1')
+  names2 <- c('line2', 'col2')
   pd1 <- parse.data[do.call(order, parse.data[names1]), ]
   pd2 <- parse.data[do.call(order, parse.data[names2]), ]
   mutate(data.frame(
       head(pd1, 1L)[names1]
     , tail(pd2, 1L)[names2]
-  ), col1 = col1 + 1, byte1 = byte1 + 1)
+  ))
 }
 
 #' @rdname conversion
@@ -158,15 +157,15 @@ parse2find <- function(parse.data) {
 find2replace <- function(find.data) {
     mdply(find.data, .find2replace1)[, - seq_len(ncol(find.data))]
 }
-.find2replace1 <- function(line1, byte1, line2, byte2, ...){
+.find2replace1 <- function(line1, col1, line2, col2){
     if (line1 == line2) {
-      data.frame(line = line1, start = byte1 + 1, end = byte2)
+      data.frame(line = line1, start = col1, end = col2)
     } else {
       nlines <- line2 - line1
       data.frame(
         line  = c(line1:line2), 
-        start = c(byte1 + 1, rep(1L, nlines)),
-        end   = c(rep( - 1L, nlines), byte2))
+        start = c(col1, rep(1L, nlines)),
+        end   = c(rep( - 1L, nlines), col2))
     }
 }
   
@@ -180,9 +179,7 @@ locate2find <- function(loc) {
       , line1 = seq_along(start)
       , line2 = seq_along(start)
       ,  col1 = start
-      , byte1 = start
-      ,  col2 = end
-      , byte2 = end)[!is.na(loc$start), names(empty.find)]
+      ,  col2 = end)[!is.na(loc$start), names(empty.find)]
 }
 
 do_results_overlap_1 <- function(x, y, strict.contains) {
@@ -193,12 +190,12 @@ do_results_overlap_1 <- function(x, y, strict.contains) {
     x.end   <- x$line2
     y.start <- y$line1
     y.end   <- y$line2
-    max.byte <- max(x$byte1, x$byte2, y$byte1, y$byte2)
+    max.byte <- max(x$col1, x$col2, y$col1, y$col2)
     if (max.byte > 0) {
-        x.start <- x.start + x$byte1 / max.byte
-        x.end   <- x.end   + x$byte2 / max.byte 
-        y.start <- y.start + y$byte1 / max.byte
-        y.end   <- y.end   + y$byte2 / max.byte
+        x.start <- x.start + x$col1 / max.byte
+        x.end   <- x.end   + x$col2 / max.byte 
+        y.start <- y.start + y$col1 / max.byte
+        y.end   <- y.end   + y$col2 / max.byte
     }
     if(strict.contains) {
         if (x.start >= y.start && x.end <= y.end) return(TRUE)
@@ -265,8 +262,8 @@ merge_find <- function(...){
     cbind( rename(min_find_2(x.row[1:3], y.row[1:3]), .names1)
          , rename(max_find_2(x.row[4:6], y.row[4:6]), .names2) )
 }
-.names1 <- c(line='line1', col='col1', byte='byte1')
-.names2 <- c(line='line2', col='col2', byte='byte2')
+.names1 <- c(line='line1', col='col1')
+.names2 <- c(line='line2', col='col2')
 min_find <- function( a.line, a.col, a.byte
         , b.line, b.col, b.byte ) {
     if(a.line == b.line){
@@ -323,7 +320,7 @@ valid_find <- function(x, strict = FALSE, extended = TRUE){(
     } else {
         TRUE
     }
- && !any(x$line1 == 0) && !any(x$col1 == 0) && !any(x$byte1 == 0)
+ && !any(x$line1 == 0) && !any(x$col1 == 0)
  && !any(x$line1 < x$line2)
 )}
 
@@ -342,23 +339,15 @@ span_intersect <- function(x, y){
     col1  <- if(x.row$line1 == y.row$line1) max(x.row$col1, y.row$col1)
              else if(x.row$line1 < y.row$line1) y.row$col1
              else x.row$col1
-    byte1 <- if(x.row$line1 == y.row$line1) max(x.row$byte1, y.row$byte1)
-             else if(x.row$line1 < y.row$line1) y.row$byte1
-             else x.row$byte1
     line2 <- min(x.row$line2, y.row$line2)
     col2  <- if(x.row$line2 == y.row$line2) min(x.row$col2, y.row$col2)
              else if(x.row$line2 > y.row$line2) y.row$col2
              else x.row$col2
-    byte2 <- if(x.row$line2 == y.row$line2) min(x.row$byte2, y.row$byte2)
-             else if(x.row$line2 > y.row$line2) y.row$byte2
-             else x.row$byte2
 
     data.frame( line1 = line1
               ,  col1 =  col1
-              , byte1 = byte1
               , line2 = line2
-              ,  col2 =  col2
-              , byte2 = byte2)
+              ,  col2 =  col2)
 }
 
 span_difference <- function(x, y, strict = FALSE) {

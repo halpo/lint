@@ -40,7 +40,7 @@ test_that("dispatch_test", {
   file <- 
   check.file <- system.file("examples/checks.R", package="lint")
   pd <-
-  parse.data <- attr(parser(check.file), 'data')
+  parse.data <- getParseData(parse(check.file))
   expect_that(
     dispatch_test(list(exclude.region=character(0)), check.file)
   , throws_error("Ill-formatted check."))
@@ -66,7 +66,7 @@ test_that("dispatch_test", {
 })
 test_that("lint", {
     file <- 
-    check.file <- system.file("examples/checks.R", package="lint")
+    check.file <- find_example("checks.R", package="lint")
         
     lint.tests <- list(
           spacing.twobeforecomments  = spacing.twobeforecomments

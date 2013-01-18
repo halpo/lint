@@ -56,11 +56,9 @@
 #' @export
 make_class_finder <- function(classes){
     f <- function(..., parse.data) {
-        rows  <- subset(parse.data, parse.data$token.desc %in% classes)
+        rows  <- subset(parse.data, parse.data$token %in% classes)
         if(nrow(rows) == 0) return(empty.find)
-        lrows <- structure(mlply(rows, data.frame)
-                          , split_type=NULL, split_labels=NULL)
-        parse2find(lrows)
+        return(rows[c('line1', 'col1', 'line2', 'col2')])
     }
     structure(f, classes=classes)
 }
@@ -97,14 +95,14 @@ find_number <- make_class_finder("NUM_CONST")
 #' @rdname finders
 #' @export
 find_function_args <- function(..., parse.data) {
-    ftokens <- subset(parse.data, parse.data$token.desc == "FUNCTION")
+    ftokens <- subset(parse.data, parse.data$token == "FUNCTION")
     ddply(ftokens, "id" , .find_function_args1
          , parse.data = parse.data)[names(empty.find)]
 }
 .find_function_args1 <- function(d, ..., parse.data) {
     p <- d$parent
     function.args <- subset(parse.data, parse.data$parent == d$p & 
-      !(parse.data$token.desc %in% c('expr', 'FUNCTION')))
+      !(parse.data$token %in% c('expr', 'FUNCTION')))
     parse2find(function.args)
 }
   
@@ -112,7 +110,7 @@ find_function_args <- function(..., parse.data) {
 #' @export
 find_function_body <- function(..., lines, file
                               , parse.data = attr(parser(file))) {
-  f.nodes <- subset(parse.data, parse.data$token.desc == "FUNCTION")
+  f.nodes <- subset(parse.data, parse.data$token == "FUNCTION")
   if(!nrow(f.nodes)) return(empty.find)
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
   body.contents <- find_children(body.parents, parse.data)
@@ -124,7 +122,7 @@ find_function_body <- function(..., lines, file
 #' @export
 find_call_args <- function(..., file, parse.data = attr(parser(file))) {
   call.nodes <- subset(parse.data, 
-    parse.data$token.desc == "SYMBOL_FUNCTION_CALL")
+    parse.data$token == "SYMBOL_FUNCTION_CALL")
   if(!nrow(call.nodes)) return(empty.find)
   call.args <- 
     llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)

@@ -41,7 +41,7 @@ spacing.linelength.80 <- {list(pattern = "^.{80}\\s*[^\\s]"
     lines = c('123'
       , paste(rep.int('#', 80), collapse='')
       , paste(rep.int('#', 81), collapse=''))
-  , results = data.frame(line1=3, col1=1, byte1=1, line2=3, col2=81, byte2=81)
+  , results = data.frame(line1=3, col1=1, line2=3, col2=81)
 )}
 
 #' @rdname stylechecks
@@ -56,7 +56,7 @@ spacing.linelength.100 <- {list(pattern = "^.{100}\\s*[^\\s]"
     lines = c('123'
       , paste(rep.int('#', 100), collapse='')
       , paste(rep.int('#', 101), collapse=''))
-  , results = data.frame(line1=3, col1=1, byte1=1, line2=3, col2=101, byte2=101)
+  , results = data.frame(line1=3, col1=1, line2=3, col2=101)
 )}
 
 #' @rdname stylechecks
@@ -74,10 +74,8 @@ spacing.indentation.notabs <- list(pattern ="^\\t"
   , results = data.frame(
         line1 = as.integer(c(2))
       , col1  = as.integer(c(1))
-      , byte1 = as.integer(c(1))
       , line2 = as.integer(c(2))
-      , col2  = as.integer(c(1))
-      , byte2 = as.integer(c(1)))
+      , col2  = as.integer(c(1)) )
 )}
 
 #' @rdname stylechecks
@@ -95,10 +93,8 @@ spacing.notabs <- list(pattern = "\\t"
   , results = data.frame(
         line1 = as.integer(c(2, 4, 5))
       , col1  = as.integer(c(1, 7, 6))
-      , byte1 = as.integer(c(1, 7, 6))
       , line2 = as.integer(c(2, 4, 5))
-      , col2  = as.integer(c(1, 7, 6))
-      , byte2 = as.integer(c(1, 7, 6)))
+      , col2  = as.integer(c(1, 7, 6)) )
 )}
 
 #' @rdname stylechecks
@@ -160,30 +156,30 @@ spacing.spacearoundinfix <- {list(
              , '1 + 1'                 #    #  OK 
              )}
   , results = {rbind.fill(NULL
-#     line1, col1, byte1, line2, col2, byte2
-, .rr(    2,    2,     2,     2,    2,     2)
-, .rr(    3,    2,     2,     3,    2,     2)
-, .rr(    4,    3,     3,     4,    3,     3)
-, .rr(    5,    2,     2,     5,    2,     2)
-, .rr(    6,    2,     2,     6,    2,     2)
-, .rr(    7,    2,     2,     7,    2,     2)
-, .rr(    8,    2,     2,     8,    4,     4)
-, .rr(    9,    2,     2,     9,    2,     2)
-, .rr(   10,    2,     2,    10,    3,     3)
-, .rr(   11,    2,     2,    11,    4,     4)
-, .rr(   12,    2,     2,    12,    4,     4)
-, .rr(   13,    2,     2,    13,    5,     5)
-, .rr(   14,    2,     2,    14,    2,     2)
-, .rr(   15,    2,     2,    15,    3,     3)
-, .rr(   16,    2,     2,    16,    2,     2)
-, .rr(   17,    2,     2,    17,    3,     3)
-, .rr(   18,    2,     2,    18,    3,     3)
-, .rr(   19,    2,     2,    19,    3,     3)
-, .rr(   20,    2,     2,    20,    3,     3)
-, .rr(   21,    2,     2,    21,    2,     2)
-, .rr(   22,    2,     2,    22,    2,     2)
-, .rr(   23,    2,     2,    23,    3,     3)
-, .rr(   24,    5,     5,    24,    6,     6)
+#     line1, col1, line2, col2
+, .rr(    2,    2,     2,    2)
+, .rr(    3,    2,     3,    2)
+, .rr(    4,    3,     4,    3)
+, .rr(    5,    2,     5,    2)
+, .rr(    6,    2,     6,    2)
+, .rr(    7,    2,     7,    2)
+, .rr(    8,    2,     8,    4)
+, .rr(    9,    2,     9,    2)
+, .rr(   10,    2,    10,    3)
+, .rr(   11,    2,    11,    4)
+, .rr(   12,    2,    12,    4)
+, .rr(   13,    2,    13,    5)
+, .rr(   14,    2,    14,    2)
+, .rr(   15,    2,    15,    3)
+, .rr(   16,    2,    16,    2)
+, .rr(   17,    2,    17,    3)
+, .rr(   18,    2,    18,    3)
+, .rr(   19,    2,    19,    3)
+, .rr(   20,    2,    20,    3)
+, .rr(   21,    2,    21,    2)
+, .rr(   22,    2,    22,    2)
+, .rr(   23,    2,    23,    3)
+, .rr(   24,    5,    24,    6)
 )}
 )}
 
@@ -207,10 +203,8 @@ spacing.spacearoundequals <- {list(
              )
   , results = data.frame( line1 = c(1, 4)
                         ,  col1 = c(2, 6)
-                        , byte1 = c(2, 6)
                         , line2 = c(1, 4)
-                        ,  col2 = c(2, 6)
-                        , byte2 = c(2, 6)  )
+                        ,  col2 = c(2, 6) )
 )}
 
 
@@ -232,8 +226,6 @@ spacing.twobeforecomments <- {list(
                )}
   , results = {data.frame(  line1 = c(4, 5)
                           ,  col1 = c(2, 3)
-                          , byte1 = c(2, 3)
                           , line2 = c(4, 5)
-                          ,  col2 = c(2, 3)
-                          , byte2 = c(2, 3))}
+                          ,  col2 = c(2, 3) )}
 )}

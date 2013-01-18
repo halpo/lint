@@ -104,7 +104,7 @@ find_example <- function(file, package=NULL){
         }
     }
     if(file.exists(package)) {
-        dcf <- file.path(pacakge, 'DESCRIPTION')
+        dcf <- file.path(package, 'DESCRIPTION')
         if (file.exists(dcf) && (read.dcf(dcf)$Package == package)) {
             rf <- file.path('.', 'inst', 'examples', file)
                 if (rf!="") return(rf)

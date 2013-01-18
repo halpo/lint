@@ -23,6 +23,10 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
 #
+# Log
+# ===
+# 1/18/2013 tested to work under R-3.0
+#
 }###############################################################################
 context("find/strip/extract")
 
@@ -33,15 +37,13 @@ hello # there
 "}
   lines <- readLines(textConnection(text))
   comment.locations <- {data.frame(
-    line1 = c(2L, 3L),
-    col1  = c(4L, 7L),
-    byte1 = c(4L, 7L),
-    line2 = c(2L, 3L),
+    line1 = c(2L,  3L),
+    col1  = c(4L,  7L),
+    line2 = c(2L,  3L),
     col2  = c(7L, 13L),
-    byte2 = c(7L, 13L),
     stringsAsFactors = FALSE)}
 
-  pd <- attr(parser(text=text), 'data')
+  pd <- getParseData(parse(text=text))
   expect_that(
       find_comment(parse.data=pd)[,names(comment.locations)]
     , is_equivalent_to(comment.locations))
@@ -57,15 +59,13 @@ this.line(has=\'two\', "strings")
 no.string'}
   lines <- readLines(textConnection(text))
   pd <- 
-  parse.data <- attr(parser(text=text), 'data')
+  parse.data <- getParseData(parse(text=text))
 
   string.loc <- {data.frame(
     line1 = c( 1L,  2L,  3L,  5L,  6L,  6L),
     col1  = c( 1L,  6L,  6L,  6L, 15L, 22L),
-    byte1 = c( 1L,  6L,  6L,  6L, 15L, 22L),
     line2 = c( 1L,  2L,  4L,  5L,  6L,  6L),
     col2  = c(14L, 13L,  7L,  8L, 19L, 30L),
-    byte2 = c(14L, 13L,  7L,  8L, 19L, 30L),
     stringsAsFactors = FALSE)}
 
   expect_that(
@@ -82,22 +82,22 @@ no.string'}
 
 })
 test_that("Find functions arguments", {
-  file <- system.file("examples", 'check-function_args.R', package='lint')
+  file <- find_example('check-function_args.R', package='lint')
   lines <- readLines(file)
   pd <- 
-  parse.data <- attr(parser(file), 'data')
+  parse.data <- getParseData(parse(file))
   args.loc <- {as.data.frame(structure(matrix(
-            c(c( 1L,  9L,  9L,  1L, 10L, 10L)
-            , c( 2L,  9L,  9L,  2L, 10L, 10L)
-            , c( 3L,  9L,  9L,  3L, 10L, 10L)
-            , c( 4L,  9L,  9L,  4L, 10L, 10L)
-            , c( 6L, 14L, 14L,  6L, 15L, 15L)
-            , c( 9L, 14L, 14L,  9L, 19L, 19L)
-            , c(10L, 14L, 14L, 10L, 24L, 24L)
-            , c(13L, 14L, 14L, 15L, 18L, 18L)
-            , c(20L, 20L, 20L, 20L, 22L, 22L)) 
-        , byrow=TRUE, ncol=6)
-        , dimnames=list(NULL, names(empty.find))))}
+            c(c( 1L,  9L,  1L, 10L)
+            , c( 2L,  9L,  2L, 10L)
+            , c( 3L,  9L,  3L, 10L)
+            , c( 4L,  9L,  4L, 10L)
+            , c( 6L, 14L,  6L, 15L)
+            , c( 9L, 14L,  9L, 19L)
+            , c(10L, 14L, 10L, 24L)
+            , c(13L, 14L, 15L, 18L)
+            , c(20L, 20L, 20L, 22L) )
+            , byrow=TRUE, ncol=4)
+            , dimnames=list(NULL, names(empty.find))))}
 
   expect_that(
       find_function_args(parse.data=pd, internal=TRUE)

@@ -45,10 +45,8 @@ styles.assignment.noeq <- {list(
     lines = c('a=1', 'a <- 1', '1 -> 1', 'f(a=1)', 'f((a=1))')
   , results = data.frame( line1 = c(1, 5)
                         ,  col1 = c(2, 5)
-                        , byte1 = c(2, 5)
                         , line2 = c(1, 5)
-                        ,  col2 = c(2, 5)
-                        , byte2 = c(2, 5))
+                        ,  col2 = c(2, 5) )
 )}
  
 #' @rdname assignment-styles
@@ -61,10 +59,8 @@ styles.assignment.norightassign <- {list(
     lines = c('a=1', 'a <- 1', '1 -> 1', 'f(a=1)', 'f((a->1))')
   , results = data.frame( line1 = c(3, 5)
                         ,  col1 = c(3, 5)
-                        , byte1 = c(3, 5)
                         , line2 = c(3, 5)
-                        ,  col2 = c(4, 6)
-                        , byte2 = c(4, 6))
+                        ,  col2 = c(4, 6) )
 )}
  
 #' @rdname assignment-styles
@@ -79,10 +75,8 @@ styles.assignment.notinfcall <- {list(
              , 'f((a=1))', 'f(a <- 1)', 'f(1 -> a)')   # Fail
   , results = data.frame( line1 = c(5, 6, 7)
                         ,  col1 = c(5, 5, 5)
-                        , byte1 = c(5, 5, 5)
                         , line2 = c(5, 6, 7)
-                        ,  col2 = c(5, 6, 6)
-                        , byte2 = c(5, 6, 6))
+                        ,  col2 = c(5, 6, 6))
 )}
 
 

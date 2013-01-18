@@ -89,7 +89,7 @@ all_root_nodes <- function(pd, recurse.groups = T, group = 0){
       subs <- ldply(roots$id[groups], all_root_nodes, pd=pd
                    , recurse.groups = recurse.groups)
       rbind(roots[!groups,]
-          , subset(subs, subs$token.desc == 'expr'))
+          , subset(subs, subs$token == 'expr'))
     } else roots
   } else roots
   #' @return parse data with for the root nodes.
@@ -98,10 +98,10 @@ all_root_nodes <- function(pd, recurse.groups = T, group = 0){
 is_doc_comment <- function(pd.row){
   #' Check if a row represent a comment
   #' @param pd.row row of parse data
-  pd.row$token.desc == "ROXYGEN_COMMENT"
+  pd.row$token == "ROXYGEN_COMMENT"
 }
 get_all_doc_comments <- function(pd){
-  subset(pd, pd$token.desc == "ROXYGEN_COMMENT")
+  subset(pd, pd$token == "ROXYGEN_COMMENT")
 }
 is_comment <- function(pd.row, allow.roxygen = F){
   #' check if a row is a comment
@@ -109,8 +109,8 @@ is_comment <- function(pd.row, allow.roxygen = F){
   #' @param allow.roxygen should roxygen 
   if (nrow(pd.row) > 1) return(daply(pd.row, 'id', is_comment
                            , allow.roxygen = allow.roxygen))
-  pd.row$token.desc == "COMMENT" || 
-  (allow.roxygen && pd.row$token.desc == "ROXYGEN_COMMENT")
+  pd.row$token == "COMMENT" || 
+  (allow.roxygen && pd.row$token == "ROXYGEN_COMMENT")
 }
 
 is_root <- function(.id = pd$id, pd){
@@ -122,7 +122,7 @@ is_root <- function(.id = pd$id, pd){
   if(length(.id) > 1) 
     return(laply(.id, is_root, pd))
   pd.row <- pd[pd$id == .id, ]
-  if (pd.row[,'token.desc'] != 'expr') return(FALSE)
+  if (pd.row[,'token'] != 'expr') return(FALSE)
   parent <- pd.row[,'parent']
   if (parent == 0 ) return(TRUE)
   if (is_grouping(parent, pd)) return(TRUE)
@@ -148,7 +148,7 @@ is_grouping <- function(id = pd$id, pd){
   row <- pd[pd$id == id, ]
   child <- get_child(id, pd, 1)
   return(  nrow(child)
-        && child$token.desc[1] == "'{'"
+        && child$token[1] == "'{'"
         && (row$parent == 0 || is_grouping(row$parent, pd)))
   #' @return a logical indicating if the root node(s) is a grouping node or not
 }
