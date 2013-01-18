@@ -89,6 +89,32 @@ check_pattern <- function(pattern
   }
 }
 
+#' Find an example file.
+#' 
+#' only for helping with testthat/devtools testing.
+#' @keywords internal
+find_example <- function(file, package=NULL){
+    rf <- system.file("examples", file, package=package, mustWork=FALSE)
+    if (rf!="") return(rf) 
+    {
+        dcf <- file.path('.', 'DESCRIPTION')
+        if (file.exists(dcf) && (read.dcf(dcf)[1,'Package'] == package)) {
+            rf <- file.path('.', 'inst', 'examples', file)
+                if (rf!="") return(rf)
+        }
+    }
+    if(file.exists(package)) {
+        dcf <- file.path(pacakge, 'DESCRIPTION')
+        if (file.exists(dcf) && (read.dcf(dcf)$Package == package)) {
+            rf <- file.path('.', 'inst', 'examples', file)
+                if (rf!="") return(rf)
+        }
+    }
+    stop(sprintf("could not find the file %f", file))
+}
+
+
+
 #' Look for an argument.
 #' 
 #' @param x an object
