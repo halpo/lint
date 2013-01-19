@@ -36,8 +36,8 @@
 #'  
 #'  The formats are:
 #'  \enumerate{
-#'      \item parse   - data from the data atribute of a \code{\link{parser}}
-#'                      object.  In parse data each element of an expression
+#'      \item parse   - from the \code{\link{getParseData}} function.
+#'                      In parse data each element of an expression
 #'                      has it's own row.
 #'      \item find    - similar to parse but gives a row for each region or 
 #'                      expression of interest.
@@ -50,7 +50,7 @@
 #'  }
 #'
 #'  @section parse data structure:
-#'   Parse data structure originates from the \code{\link{parser}} function,
+#'   Parse data structure originates from the \code{\link{getParseData}} function,
 #'   which returns an objects with the attribute '\code{data}'.  Parse formatted
 #'   data contains a row for every token, string, and expression.  
 #'   The data frame describes a tree structure with each row a node.

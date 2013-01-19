@@ -47,10 +47,11 @@
 #'  Custom finders are encouraged, but finders for common classes are 
 #'  included in the package.
 #'  
-#' @param classes with \code{make_class_finder} the parser classes to find.
+#' @param classes with \code{make_class_finder} the \code{\link{getParseData}}
+#'                classes to find.
 #' @param file the file being examined.
 #' @param lines the lines being examined.
-#' @param parse.data data from \code{\link{parser}}
+#' @param parse.data data from \code{\link{getParseData}}
 #' @param ... extra arguments that include \code{file}, and \code{lines}
 #' 
 #' @export
@@ -109,7 +110,7 @@ find_function_args <- function(..., parse.data) {
 #' @rdname finders
 #' @export
 find_function_body <- function(..., lines, file
-                              , parse.data = attr(parser(file))) {
+                              , parse.data = getParseData(parse(file))) {
   f.nodes <- subset(parse.data, parse.data$token == "FUNCTION")
   if(!nrow(f.nodes)) return(empty.find)
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)

@@ -41,7 +41,7 @@
 #'   \item \code{message} The message to be displayed.
 #'   \item \code{include.region} lists regions to restrict the search to.
 #'         Can be a character vector specifying the known regions, or a list of 
-#'         functions that interpret output from \code{\link{parser}}.
+#'         functions that interpret output from \code{\link{getParseData}}.
 #'   \item \code{exclude.region=c('comments', 'string')} lists regions to 
 #'         restrict the search to. Operates the sames as \code{include.region}.
 #'   \item \code{use.lines=T} should the pattern be evaluated in lines (default)
@@ -61,39 +61,36 @@ NULL
 #' @return either NULL or throws an error for use with test_that
 #' 
 test_style <- function(check, ti, only.results = F) {
+    p  <- 
     if(is.null(ti$file)) {
         if(is.null(ti$lines)) {
             if(is.null(ti$text))
-                stop(paste0("Invalid ti;"
-                     , " one of file, lines, or text, must be specified."))
+                stop( paste0("Invalid ti;"
+                    , " one of file, lines, or text, must be specified."))
             else {
-                ti$file  <- textConnection(ti$text)
-                ti$lines <- textConnection(ti$text)
+                ti$lines <- readLines(ti$file)
+                parse(text=text)
             }
         } else {
             if(is.null(ti$text)) {
                 ti$text <- paste(ti$lines, collapse='\n')
-                ti$file <- textConnection(ti$text)
             } else {
                 lines <- readLines(textConnection(ti$text))
                 stopifnot(identical(lines, ti$lines))
-                ti$file <- textConnection(ti$text)
             }
+            parse(text=ti$text)
         }
     } else {
         if(is.null(ti$lines))
             lines <- readLines(ti$file)
-        else 
+        else
             stopifnot(identical(ti$lines, readLines(ti$file)))
+        parse(file=ti$file)
     }
-    on.exit(if(isOpen(ti$file)){close(ti$file)})
-    p  <- parser(file=ti$file)
-    pd <- 
-    parse.data <- attr(p, 'data')
+    pd <- getParseData(p)
     
     results <- suppressMessages(suppressWarnings({
-        dispatch_test(check, file = ti$file, lines = ti$lines
-                                , parse.data = parse.data)
+        dispatch_test(check, file = ti$file, lines = ti$lines, parse.data = pd)
     }))
     if(only.results) return(results)
     expect_equivalent(results, ti$results)
@@ -110,7 +107,9 @@ test_style <- function(check, ti, only.results = F) {
 #' 
 #' @export
 autotest_style <- function(check.name, only.results=FALSE) {
-    check.name <- as.character(substitute(c(check.name)))[ - 1]
+    if(!is.character(check.name))
+        check.name <- as.character(substitute(c(check.name)))[ - 1]
+    
     check <- get(check.name)
     ti <- get(paste0('.testinfo.', check.name))
     if(only.results)

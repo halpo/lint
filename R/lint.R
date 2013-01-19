@@ -35,7 +35,6 @@
 #' 
 #' @import plyr
 #' @import stringr
-#' @importFrom parser parser
 #' @importFrom harvestr noattr
 #' @import foreach
 #' @import dostats
@@ -131,7 +130,7 @@ with_default <- function(x, default) {
 #' Dispatch tests to the appropriate handler
 #' @param test the test
 #' @param file the file to check
-#' @param parse.data parse data from \code{\link{parser}}
+#' @param parse.data parse data from \code{\link{getParseData}}
 #' @param lines the lines to evaluate, overrides file.
 #' @param quiet should the test be quiet, i.e. no messages or warnings?
 #' @param warning should messages be upgraded to warnings, ignored if 
@@ -144,7 +143,7 @@ with_default <- function(x, default) {
 #' returns the results from the test handler, which should be either a TRUE for
 #' a passed test or the lines, locations, and/or string violating the rules.
 #' @export
-dispatch_test <- function(test, file, parse.data = attr(parser(file), 'data')
+dispatch_test <- function(test, file, parse.data = getParseData(parse(file))
   , lines = readLines(file), quiet = FALSE
   , warning = with_default(test$warning, FALSE)
 ) {
@@ -246,7 +245,7 @@ lint_file <- function(file, style) {
     message("Lint checking: ", ifelse(inherits(file, 'character')
                                      , file, class(file)[[1]]))
     lines <- readLines(file)
-    parse.data <- attr(parser(text=lines), 'data')
+    parse.data <- getParseData(parse(text=lines))
   
     invisible(llply(style, dispatch_test, file = file
         , parse.data = parse.data, lines = lines))

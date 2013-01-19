@@ -48,7 +48,7 @@ get_children <- function(id, parse.data, nlevels = - 1L){
 #' 
 #'  @param id the id of the given expression in \code{parse.data}
 #'  @param parse.data the data from a parsed file or expression.  
-#'    The results of \code{\link{parser}}.
+#'    The results of \code{\link{getParseData}}.
 #'  @param nlevels the number of levels to search.  If a negative number is 
 #'    given all children will be found.
 #' 
@@ -79,9 +79,9 @@ get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
 
 all_root_nodes <- function(pd, recurse.groups = T, group = 0){
 #' Find all root node from parse data
-  #' @param pd parse data from \code{\link{parser}}
-  #' @param recurse.groups descend into grouped code \code{\{\}}?
-  #' @param group the grouping node id
+#' @param pd parse data from \code{\link{autotest_style('styles.assignment.noeq')}}
+#' @param recurse.groups descend into grouped code \code{\{\}}?
+#' @param group the grouping node id
   roots <- subset(pd, pd$parent == group)
   if(recurse.groups) {
     groups <- is_grouping(roots$id, pd)
