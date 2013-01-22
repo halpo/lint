@@ -8,6 +8,10 @@
 # -----------
 # This file contains the tests for checking the patterns and tests.
 # 
+# Log
+# ----------
+# 1/18/2013 checked to work under R 3.0
+# 
 # 
 ################################################################################
 context("Styles/Spacing")

@@ -33,9 +33,10 @@ context("Conversion")
 source(find_example("ex-conversion.R", package='lint'))
 
 test_that('locate2find converts to find',{
+    expected <- data.frame(line1=4, col1=2, line2=4, col2=6)
     expect_that(
         locate2find(l)
-        , is_equivalent_to(data.frame(4, 2, 4, 6))
+        , is_equivalent_to(expected)
     )
 })
 test_that('locate2find produces valid find data.',{

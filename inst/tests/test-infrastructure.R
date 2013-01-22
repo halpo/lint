@@ -9,6 +9,7 @@
 # 
 ################################################################################
 context("Infrastructure")
+library(stringr)
 
 test_that('find_region returns empty.find for empty.regions',{
     expect_that(find_region(character(0),,,), is_identical_to(empty.find))
@@ -38,7 +39,7 @@ test_that("check_pattern", {
 })
 test_that("dispatch_test", {
   file <- 
-  check.file <- system.file("examples/checks.R", package="lint")
+  check.file <- find_example("checks.R", package="lint")
   pd <-
   parse.data <- getParseData(parse(check.file))
   expect_that(
@@ -50,7 +51,7 @@ test_that("dispatch_test", {
     "abc",
     "xyz")
   parse.data <- 
-  pd <- attr(parser(text=paste(lines,'\n', collapse='')), 'data')
+  pd <- getParseData(parse(text=paste(lines,'\n', collapse='')))
   test <- list(pattern='abc')
   expect_that(
       dispatch_test(test, , pd, lines, warning=T)

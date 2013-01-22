@@ -1,5 +1,4 @@
 # conversion examples
-library(parser)
 library(stringr)
 text <- "
 hw <- function(){
