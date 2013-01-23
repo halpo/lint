@@ -155,9 +155,9 @@ spacing.spacearoundinfix <- {list(
              , '1 +'                   #    #  OK 
              , '1 + 1'                 #    #  OK 
              )}
-  , results = {rbind.fill(NULL
+  , results = {rbind.fill(
 #     line1, col1, line2, col2
-, .rr(    2,    2,     2,    2)
+  .rr(    2,    2,     2,    2)
 , .rr(    3,    2,     3,    2)
 , .rr(    4,    3,     4,    3)
 , .rr(    5,    2,     5,    2)

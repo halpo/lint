@@ -78,7 +78,7 @@
 #'   
 #'  @section Find data structure:
 #'   For the purposes of the data the find data consists of a single row 
-#'   for each section/region with the first 6 columns of parse.data;
+#'   for each section/region with the first 4 columns of parse.data;
 #'   the columns \code{line1}, \code{col1}, \code{line2}, and
 #'   \code{col2}, marking the beginning and end of a section.
 #'   This is a condensation of the parse data which would have the same columns
@@ -87,7 +87,7 @@
 #'   Find formatted data is defined to be R or 1 based arrays and inclusive.
 #'   the first two elements would be \code{col1=1, col2=2}.
 #'  
-#'   Although both \code{col} and \code{byte} elements are retained in 
+#'   Although both \code{col} elements are retained in 
 #'   conversion functions, at this time only \code{col} columns are used 
 #'   internally.
 #'  
@@ -190,12 +190,12 @@ do_results_overlap_1 <- function(x, y, strict.contains) {
     x.end   <- x$line2
     y.start <- y$line1
     y.end   <- y$line2
-    max.byte <- max(x$col1, x$col2, y$col1, y$col2)
-    if (max.byte > 0) {
-        x.start <- x.start + x$col1 / max.byte
-        x.end   <- x.end   + x$col2 / max.byte 
-        y.start <- y.start + y$col1 / max.byte
-        y.end   <- y.end   + y$col2 / max.byte
+    max.col <- max(x$col1, x$col2, y$col1, y$col2)
+    if (max.col > 0) {
+        x.start <- x.start + x$col1 / max.col
+        x.end   <- x.end   + x$col2 / max.col 
+        y.start <- y.start + y$col1 / max.col
+        y.end   <- y.end   + y$col2 / max.col
     }
     if(strict.contains) {
         if (x.start >= y.start && x.end <= y.end) return(TRUE)
@@ -259,51 +259,48 @@ merge_find <- function(...){
 .merge_by_idx1 <- function(x.idx, y.idx, x, y){
     x.row <- x[x.idx, ]
     y.row <- y[y.idx, ]
-    cbind( rename(min_find_2(x.row[1:3], y.row[1:3]), .names1)
-         , rename(max_find_2(x.row[4:6], y.row[4:6]), .names2) )
+    cbind( rename(min_find_2( x.row[c('line1', 'col1')]
+                            , y.row[c('line1', 'col1')]), .names1)
+         , rename(max_find_2( x.row[c('line2', 'col2')]
+                            , y.row[c('line2', 'col2')]), .names2) )
 }
 .names1 <- c(line='line1', col='col1')
 .names2 <- c(line='line2', col='col2')
-min_find <- function( a.line, a.col, a.byte
-        , b.line, b.col, b.byte ) {
+min_find <- function( a.line, a.col
+                    , b.line, b.col) 
+{
     if(a.line == b.line){
         data.frame( line = a.line
-                  , col  = min(a.col, b.col)
-                  , byte = min(a.byte, b.byte))
+                  , col  = min(a.col, b.col) )
     } else 
     if(a.line < b.line){
         data.frame( line = a.line
-                  , col  = a.col
-                  , byte = a.byte)
+                  , col  = a.col )
     } else 
     if(a.line > b.line) {
         data.frame( line = b.line
-                  , col  = b.col
-                  , byte = b.byte)
+                  , col  = b.col  )
     } else stop("Seriously?! how did you get here?")
 }
 min_find_2<- function(x, y)
-    min_find(x[[1]], x[[2]], x[[3]], y[[1]], y[[2]], y[[3]])
-max_find<- function( a.line, a.col, a.byte
-        , b.line, b.col, b.byte ) {
+    min_find(x[['line1']], x[['col1']], y[['line1']], y[['col1']])
+max_find<- function( a.line, a.col
+        , b.line, b.col) {
     if(a.line == b.line){
         data.frame( line = a.line
-                  , col  = max(a.col, b.col)
-                  , byte = max(a.byte, b.byte))
+                  , col  = max(a.col, b.col) )
     } else 
     if(a.line > b.line){
         data.frame( line = a.line
-                  , col  = a.col
-                  , byte = a.byte)
+                  , col  = a.col  )
     } else 
     if(a.line < b.line) {
         data.frame( line = b.line
-                  , col  = b.col
-                  , byte = b.byte)
+                  , col  = b.col  )
     } else stop("Seriously!? how did you get here?")
 }
 max_find_2<- function(x, y)
-    max_find(x[[1]], x[[2]], x[[3]], y[[1]], y[[2]], y[[3]])
+    max_find(x[['line2']], x[['col2']], y[['line2']], y[['col2']])
 
 
 

@@ -35,6 +35,7 @@
 #' 
 #' @import plyr
 #' @import stringr
+#' @export perl
 #' @importFrom harvestr noattr
 #' @import foreach
 #' @import dostats
@@ -93,6 +94,7 @@ check_pattern <- function(pattern
 #' only for helping with testthat/devtools testing.
 #' @keywords internal
 find_example <- function(file, package=NULL){
+    # cat(getwd(), '\n')
     rf <- system.file("examples", file, package=package, mustWork=FALSE)
     if (rf!="") return(rf) 
     {
@@ -109,7 +111,10 @@ find_example <- function(file, package=NULL){
                 if (rf!="") return(rf)
         }
     }
-    stop(sprintf("could not find the file %f", file))
+    rf <- file.path('..', 'examples', file)
+    if(file.exists(rf)) 
+        return(rf)
+    stop(sprintf("could not find the file %s", file))
 }
 
 

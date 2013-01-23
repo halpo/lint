@@ -12,7 +12,6 @@ Depends:
 Imports:
     plyr,
     stringr,
-    parser,
     harvestr,
     dostats,
     foreach

@@ -121,7 +121,7 @@ find_function_body <- function(..., lines, file
 
 #' @rdname finders
 #' @export
-find_call_args <- function(..., file, parse.data = attr(parser(file))) {
+find_call_args <- function(..., file, parse.data = getParseData(parse(file))) {
   call.nodes <- subset(parse.data, 
     parse.data$token == "SYMBOL_FUNCTION_CALL")
   if(!nrow(call.nodes)) return(empty.find)
