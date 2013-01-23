@@ -69,7 +69,7 @@ test_style <- function(check, ti, only.results = F) {
                     , " one of file, lines, or text, must be specified."))
             else {
                 ti$lines <- readLines(ti$file)
-                parse(text=text)
+                parse(text=text, keep.source=TRUE)
             }
         } else {
             if(is.null(ti$text)) {
@@ -78,14 +78,14 @@ test_style <- function(check, ti, only.results = F) {
                 lines <- readLines(textConnection(ti$text))
                 stopifnot(identical(lines, ti$lines))
             }
-            parse(text=ti$text)
+            parse(text=ti$text, keep.source=TRUE)
         }
     } else {
         if(is.null(ti$lines))
             lines <- readLines(ti$file)
         else
             stopifnot(identical(ti$lines, readLines(ti$file)))
-        parse(file=ti$file)
+        parse(file=ti$file, keep.source=TRUE)
     }
     pd <- getParseData(p)
     

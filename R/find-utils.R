@@ -68,7 +68,7 @@ make_stripper <- function(finder, replace.with = ''){
     lines,
     text =  paste(lines, collapse='\n'),
     file = textConnection(text), 
-    parse.data = getParseData(parse(file)),
+    parse.data = getParseData(parse(file, keep.source=TRUE)),
     replace.with = replace.with.default,
     ...
   ){
@@ -81,7 +81,7 @@ make_extractor <- function(finder) {
     lines,
     text =  paste(lines, collapse='\n'),
     file = textConnection(text), 
-    parse.data = getParseData(parse(file))
+    parse.data = getParseData(parse(file, keep.source=TRUE))
   ) {
     find <- finder(parse.data = parse.data)
     extract(lines, find2replace(find))

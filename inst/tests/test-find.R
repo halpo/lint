@@ -43,7 +43,7 @@ hello # there
     col2  = c(7L, 13L),
     stringsAsFactors = FALSE)}
 
-  pd <- getParseData(parse(text=text))
+  pd <- getParseData(parse(text=text, keep.source=TRUE))
   expect_that(
       find_comment(parse.data=pd)[,names(comment.locations)]
     , is_equivalent_to(comment.locations))
@@ -59,7 +59,7 @@ this.line(has=\'two\', "strings")
 no.string'}
   lines <- readLines(textConnection(text))
   pd <- 
-  parse.data <- getParseData(parse(text=text))
+  parse.data <- getParseData(parse(text=text, keep.source=TRUE))
 
   string.loc <- {data.frame(
     line1 = c( 1L,  2L,  3L,  5L,  6L,  6L),
@@ -85,7 +85,7 @@ test_that("Find functions arguments", {
   file <- find_example('check-function_args.R', package='lint')
   lines <- readLines(file)
   pd <- 
-  parse.data <- getParseData(parse(file))
+  parse.data <- getParseData(parse(file, keep.source=TRUE))
   args.loc <- {as.data.frame(structure(matrix(
             c(c( 1L,  9L,  1L, 10L)
             , c( 2L,  9L,  2L, 10L)

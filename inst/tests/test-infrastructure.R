@@ -41,7 +41,7 @@ test_that("dispatch_test", {
   file <- 
   check.file <- find_example("checks.R", package="lint")
   pd <-
-  parse.data <- getParseData(parse(check.file))
+  parse.data <- getParseData(parse(check.file, keep.source=TRUE))
   expect_that(
     dispatch_test(list(exclude.region=character(0)), check.file)
   , throws_error("Ill-formatted check."))
@@ -51,7 +51,7 @@ test_that("dispatch_test", {
     "abc",
     "xyz")
   parse.data <- 
-  pd <- getParseData(parse(text=paste(lines,'\n', collapse='')))
+  pd <- getParseData(parse(text=paste(lines,'\n', collapse=''), keep.source=TRUE))
   test <- list(pattern='abc')
   expect_that(
       dispatch_test(test, , pd, lines, warning=T)
