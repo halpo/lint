@@ -77,6 +77,14 @@ find_basic_comment <- make_class_finder("COMMENT")
 
 #' @rdname finders
 #' @export
+find_inside_comment <- function(...,parse.data) {
+    df <- mutate(find_basic_comment(..., parse.data = parse.data)
+                , col1 = col1 + 1)
+    subset(df, col2 > col1 | line2 > line1)
+}
+
+#' @rdname finders
+#' @export
 find_doc_comment <- make_class_finder(c("ROXYGEN_COMMENT"))
 
 
