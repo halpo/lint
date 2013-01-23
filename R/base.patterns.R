@@ -35,9 +35,9 @@
 NULL
 
 if(getRversion() < "2.15.0") {
-	paste0 <- function(..., collapse=NULL) {
-		paste(..., collapse=collapse, sep='')
-	}
+    paste0 <- function(..., collapse = NULL) {
+        paste(..., collapse=collapse, sep = '')
+    }
 }
 
 

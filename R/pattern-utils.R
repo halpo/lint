@@ -106,7 +106,7 @@ test_style <- function(check, ti, only.results = F) {
 #' lines and \code{$results} is the find formated data.frame.
 #' 
 #' @export
-autotest_style <- function(check.name, only.results=FALSE) {
+autotest_style <- function(check.name, only.results = FALSE) {
     if(!is.character(check.name))
         check.name <- as.character(substitute(c(check.name)))[ - 1]
     

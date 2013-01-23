@@ -79,7 +79,7 @@ get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
 
 all_root_nodes <- function(pd, recurse.groups = T, group = 0){
 #' Find all root node from parse data
-#' @param pd parse data from \code{\link{autotest_style('styles.assignment.noeq')}}
+#' @param pd parse data from \code{\link{getParseData}}.
 #' @param recurse.groups descend into grouped code \code{\{\}}?
 #' @param group the grouping node id
   roots <- subset(pd, pd$parent == group)

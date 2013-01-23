@@ -110,7 +110,7 @@ find_function_args <- function(..., parse.data) {
 #' @rdname finders
 #' @export
 find_function_body <- function(..., lines, file
-                              , parse.data = getParseData(parse(file, keep.source=TRUE))) {
+    , parse.data = getParseData(parse(file, keep.source=TRUE))) {
   f.nodes <- subset(parse.data, parse.data$token == "FUNCTION")
   if(!nrow(f.nodes)) return(empty.find)
   body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)

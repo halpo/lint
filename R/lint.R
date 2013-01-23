@@ -92,22 +92,22 @@ check_pattern <- function(pattern
 #' 
 #' only for helping with testthat/devtools testing.
 #' @keywords internal
-find_example <- function(file, package=NULL){
+find_example <- function(file, package = NULL){
     # cat(getwd(), '\n')
     rf <- system.file("examples", file, package=package, mustWork=FALSE)
-    if (rf!="") return(rf) 
+    if (rf != "") return(rf) 
     {
         dcf <- file.path('.', 'DESCRIPTION')
         if (file.exists(dcf) && (read.dcf(dcf)[1,'Package'] == package)) {
             rf <- file.path('.', 'inst', 'examples', file)
-                if (rf!="") return(rf)
+                if (rf != "") return(rf)
         }
     }
     if(file.exists(package)) {
         dcf <- file.path(package, 'DESCRIPTION')
         if (file.exists(dcf) && (read.dcf(dcf)$Package == package)) {
             rf <- file.path('.', 'inst', 'examples', file)
-                if (rf!="") return(rf)
+                if (rf != "") return(rf)
         }
     }
     rf <- file.path('..', 'examples', file)
@@ -147,7 +147,9 @@ with_default <- function(x, default) {
 #' returns the results from the test handler, which should be either a TRUE for
 #' a passed test or the lines, locations, and/or string violating the rules.
 #' @export
-dispatch_test <- function(test, file, parse.data = getParseData(parse(file, keep.source=TRUE))
+dispatch_test <- 
+function(test, file
+        , parse.data = getParseData(parse(file, keep.source=TRUE))
   , lines = readLines(file), quiet = FALSE
   , warning = with_default(test$warning, FALSE)
 ) {

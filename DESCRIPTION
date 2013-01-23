@@ -1,7 +1,7 @@
 Package: lint
 Title: Tools to check R code style
 Version: 0.3
-Date: 2012-08-09
+Date: 2013-01-23
 Author: Andrew Redd <andrew.redd@hsc.utah.edu>
 Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 Description: Tools for checking R code for style compliance.
@@ -11,8 +11,8 @@ Depends:
     R (>= 3.0)
 Imports:
     plyr,
-    stringr,
     harvestr,
+    stringr,
     dostats,
     foreach
 Suggests:

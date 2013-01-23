@@ -66,11 +66,11 @@ spacing.indentation.notabs <- list(pattern ="^\\t"
   , exclude.region = .no.exclude
 )
 .testinfo.spacing.indentation.notabs <- {list(
-    lines = c('    "hello world"'    # Good
-            , '\t"hi there"'         # Bad
-            , '"don\'t\t catch me"'  # Good, inside string
-            , '#don\'t\t catch me'   # OK, not at beginning
-            , 'IM <-\twrong()')      # OK, not at beginning
+    lines = c('    "hello world"'    #  Good
+            , '\t"hi there"'         #  Bad
+            , '"don\'t\t catch me"'  #  Good, inside string
+            , '#don\'t\t catch me'   #  OK, not at beginning
+            , 'IM <-\twrong()')      #  OK, not at beginning
   , results = data.frame(
         line1 = as.integer(c(2))
       , col1  = as.integer(c(1))
@@ -85,11 +85,11 @@ spacing.notabs <- list(pattern = "\\t"
   , exclude.region = "find_string"
 )
 .testinfo.spacing.notabs <- {list(
-    lines = c('    "hello world"'    # Good
-            , '\t"hi there"'         # Bad
-            , '"don\'t\t catch me"'  # OK, inside string(excluded)
-            , "#don't\t catch me"    # Bad, inside comment, not excluded
-            , 'IM <-\twrong()')      # Bad
+    lines = c('    "hello world"'    #  Good
+            , '\t"hi there"'         #  Bad
+            , '"don\'t\t catch me"'  #  OK, inside string(excluded)
+            , "#don't\t catch me"    #  Bad, inside comment, not excluded
+            , 'IM <-\twrong()')      #  Bad
   , results = data.frame(
         line1 = as.integer(c(2, 4, 5))
       , col1  = as.integer(c(1, 7, 6))
@@ -117,43 +117,44 @@ spacing.spacearoundinfix <- {list(
               , paste0( '(', infix.noeq, ')'
                       , no.trailing.percent, no.trailing.space.rx))
   , message = "needs space around infix operators"
-  , exclude.region = c("find_comment", "find_string", "find_symbol", "find_number")
+  , exclude.region = c("find_comment", "find_string"
+                      , "find_symbol", "find_number")
 )}
 .testinfo.spacing.spacearoundinfix <- {list(
-    lines = {c( '1 + 1'                #  1 #
-             , '1+2'                   #    #
-             , '1+ 2'                  #    #
-             , '1 +2'                  #    #
-             , '1-2'                   #  5 #
-             , '1*2'                   #    #
-             , '1/2'                   #    #
-             , '1%/%2'                 #    #
-             , '1^2'                   #    #
-             , '1**2'                  # 10 #
-             , '1%*%2'                 #    #
-             , '1%o%2'                 #    #
-             , '1%in%2'                #    #
-             , 'T&F'                   #    #
-             , 'T&&F'                  # 15 #
-             , 'T|F'                   #    #
-             , 'T||F'                  #    #
-             , '1==2'                  #    #
-             , '1>=2'                  #    #
-             , '1<=2'                  # 20 # 
-             , '1> 2'                  #    #
-             , '1< 2'                  #    #
-             , '1!=2'                  #    #
-             , 'if(a==b)return(TRUE)'  #    #
-             , 'r1 <- x %*% y'         # 25 #  OK
-             , 'r2 <- x %/% y'         #    #  OK
-             , 'r3 <- x %o% y'         #    #  OK
-             , 'r4 <- x %in% y'        #    #  OK
-             , 'r5 <- x %myopp% y'     #    #  OK
-             , 'r6 <- x %% y'          # 30 #  OK
-             , 'a <- 1e-3'             #    #  OK
-             , 'b <- 2E+4'             #    #  OK
-             , '1 +'                   #    #  OK 
-             , '1 + 1'                 #    #  OK 
+    lines = {c( '1 + 1'                #   1 #
+             , '1+2'                   #     #
+             , '1+ 2'                  #     #
+             , '1 +2'                  #     #
+             , '1-2'                   #   5 #
+             , '1*2'                   #     #
+             , '1/2'                   #     #
+             , '1%/%2'                 #     #
+             , '1^2'                   #     #
+             , '1**2'                  #  10 #
+             , '1%*%2'                 #     #
+             , '1%o%2'                 #     #
+             , '1%in%2'                #     #
+             , 'T&F'                   #     #
+             , 'T&&F'                  #  15 #
+             , 'T|F'                   #     #
+             , 'T||F'                  #     #
+             , '1==2'                  #     #
+             , '1>=2'                  #     #
+             , '1<=2'                  #  20 # 
+             , '1> 2'                  #     #
+             , '1< 2'                  #     #
+             , '1!=2'                  #     #
+             , 'if(a==b)return(TRUE)'  #     #
+             , 'r1 <- x %*% y'         #  25 #  OK
+             , 'r2 <- x %/% y'         #     #  OK
+             , 'r3 <- x %o% y'         #     #  OK
+             , 'r4 <- x %in% y'        #     #  OK
+             , 'r5 <- x %myopp% y'     #     #  OK
+             , 'r6 <- x %% y'          #  30 #  OK
+             , 'a <- 1e-3'             #     #  OK
+             , 'b <- 2E+4'             #     #  OK
+             , '1 +'                   #     #  OK 
+             , '1 + 1'                 #     #  OK 
              )}
   , results = {rbind.fill(
 #     line1, col1, line2, col2
@@ -192,14 +193,14 @@ spacing.spacearoundequals <- {list(
   , exclude.region = c("find_call_args", "find_comment", "find_string")
 )}
 .testinfo.spacing.spacearoundequals <- {list(
-    lines = c( 'a=1'                     # Bad
-             , 'f(a=1)'                  # ok
-             , 'function(){'             # 
-             , '    a=1'                 # bad
-             , '}'                       # 
-             , 'print(paste("x =", x))'  # ok
-             , 'print(paste("x =",'      # ok
-             ,  'x))'                    # 
+    lines = c( 'a=1'                     #  Bad
+             , 'f(a=1)'                  #  ok
+             , 'function(){'             #  
+             , '    a=1'                 #  bad
+             , '}'                       #  
+             , 'print(paste("x =", x))'  #  ok
+             , 'print(paste("x =",'      #  ok
+             ,  'x))'                    #  
              )
   , results = data.frame( line1 = c(1, 4)
                         ,  col1 = c(2, 6)
@@ -213,16 +214,16 @@ spacing.spacearoundequals <- {list(
 #' @export
 spacing.twobeforecomments <- {list(
     pattern = perl("(?<=[^\\s\\{\\}#])(#)|(?<=[^\\s]\\s)(#)")
-  , exclude.region = "find_string"
+  , exclude.region = c("find_string", 'find_comment')
   , message = "needs two spaces spacing before inline comments")
 }
 .testinfo.spacing.twobeforecomments <- {list(
-    lines = {c(  '{#'         # OK
-               , '}#'         # OK
-               , '# c'        # OK, start of line
-               , '1#c'        # BAD
-               , '1 #c'       # BAD
-               , '1 <- "#c"'  # OK, in string
+    lines = {c(  '{#'         #  OK
+               , '}#'         #  OK
+               , '# c'        #  OK, start of line
+               , '1#c'        #  BAD
+               , '1 #c'       #  BAD
+               , '1 <- "#c"'  #  OK, in string
                )}
   , results = {data.frame(  line1 = c(4, 5)
                           ,  col1 = c(2, 3)
