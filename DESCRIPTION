@@ -10,6 +10,7 @@ Description: Tools for checking R code for style compliance.
 Depends:
     R (>= 3.0)
 Imports:
+    methods,
     plyr,
     harvestr,
     stringr,

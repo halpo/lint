@@ -35,6 +35,7 @@
 #' 
 #' @import plyr
 #' @import stringr
+#' @import methods
 #' @importFrom harvestr noattr
 #' @import foreach
 #' @import dostats
