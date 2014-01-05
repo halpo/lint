@@ -33,3 +33,6 @@ Collate:
     'styles.performance.R'
     'styles.spacing.R'
     'lint.patterns.R'
+    'classify_comment.R'
+    'class-lintDocumentation.R'
+    'class-documentedFunction.R'

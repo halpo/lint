@@ -65,16 +65,21 @@ find_children <- function(...){
   parse2find(get_children(...))
 }
 get_parent <- function(id, parse.data) {
-  parse.data[parse.data$id == id, 'parent']
+    parse.data[match(id, parse.data$id), 'parent']
 }
-get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
+get_ancestors <- function(id, parse.data, nancestors = Inf){
   parents <- id
   while(nancestors > 0L){
     nancestors <- nancestors - 1
-    nchildren <- nchildren + 1
-    parents <- get_parent(parents, parse.data)
+    nparents <- length(parents)
+    parents <- union(parents, get_parent(parents, parse.data))
+    if(nparents == length(parents)) break
   }
-  get_child(parents, parse.data, nchildren)
+  return(parents)
+}
+get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
+  parents <- get_ancestors(id, parse.data, nancestors = nancestors)
+  get_child(max(parents), parse.data, nchildren + nancestors)
 }
 
 all_root_nodes <- function(pd, recurse.groups = T, group = 0){
