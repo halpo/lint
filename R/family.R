@@ -26,34 +26,47 @@
 }###############################################################################
 #' @include conversion.R
 
-get_child <- function(id, parse.data, nlevels =  - 1L, include.parent = TRUE) {
-#'  @rdname get_children
-#'  @export
-  stopifnot(length(id) == 1)
-  ids <- id
+get_child_ids <- 
+function( id                    #< id of the root/parent node.
+        , parse.data            #< parse data information
+        , nlevels =  Inf        #< number of levels to descend.
+        , include.parent = TRUE #< should the root/parent node be included?
+        , all.generations= include.parent #< should All generations(TRUE) or only the 
+                                #^ the final (FALSE) generation be returned?
+) {
+#!  Get all nodes that are children of `id`.
+#!  @export
+  parents <- id
+  ids <- if(include.parent) parents else integer(0)
   while(nlevels != 0) {
     nlevels <- nlevels - 1
     old.ids <- ids
-    parse.sub <- subset(parse.data, parse.data$parent %in% ids)
-    if (include.parent) ids <- c(id, parse.sub$id) else ids <- parse.sub$id       
+    new.ids <- parse.data[parse.data$parent %in% ids, 'id']
+    ids <- unique(c(if(all.generations)ids , new.ids))
+    
     if (identical(ids, old.ids)) break 
   }
-  parse.sub
+  ids
+}
+get_child <- function(id, parse.data, ...) {
+#!  @rdname get_children
+#!  @export
+  parse.data[parse.data$id %in% get_child_ids(id=id, parse.data, ...), ]
 }
 get_children <- function(id, parse.data, nlevels = - 1L){
-#' Find the children of an expression
-#' 
-#'  This takes the \code{parse.data} and find all the children of the expression
-#'  with the given \code{id}.
-#' 
-#'  @param id the id of the given expression in \code{parse.data}
-#'  @param parse.data the data from a parsed file or expression.  
-#'    The results of \code{\link{getParseData}}.
-#'  @param nlevels the number of levels to search.  If a negative number is 
-#'    given all children will be found.
-#' 
-#' @family  parse-functions
-#' @export
+#! Find the children of an expression
+#! 
+#!  This takes the \code{parse.data} and find all the children of the expression
+#!  with the given \code{id}.
+#! 
+#!  @param id the id of the given expression in \code{parse.data}
+#!  @param parse.data the data from a parsed file or expression.  
+#!    The results of \code{\link{getParseData}}.
+#!  @param nlevels the number of levels to search.  If a negative number is 
+#!    given all children will be found.
+#! 
+#! @family  parse-functions
+#! @export
   if (inherits(id, 'data.frame') && 'id' %in% names(id))
     id <- id$id
   stopifnot(inherits(id, 'integer'))
@@ -67,12 +80,15 @@ find_children <- function(...){
 get_parent <- function(id, parse.data) {
     parse.data[match(id, parse.data$id), 'parent']
 }
-get_ancestors <- function(id, parse.data, nancestors = Inf){
+get_ancestors <- function(id, parse.data, nancestors = Inf, aggregate=T){
   parents <- id
   while(nancestors > 0L){
     nancestors <- nancestors - 1
     nparents <- length(parents)
-    parents <- union(parents, get_parent(parents, parse.data))
+    
+    parents <- unique(get_parent(parents, parse.data))
+    parents <- if(aggregate) union(parents, )
+               else 
     if(nparents == length(parents)) break
   }
   return(parents)
@@ -82,11 +98,14 @@ get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
   get_child(max(parents), parse.data, nchildren + nancestors)
 }
 
-all_root_nodes <- function(pd, recurse.groups = T, group = 0){
-#' Find all root node from parse data
-#' @param pd parse data from \code{\link{getParseData}}.
-#' @param recurse.groups descend into grouped code \code{\{\}}?
-#' @param group the grouping node id
+all_root_nodes <- function(pd                  #< parse data from `<getParseData>`
+                          , recurse.groups = T #< descend into grouped code \code{\{\}}?
+                          , group = 0          #< the grouping node id, used for recursion
+){
+#! Find all root node from parse data
+#! 
+#! A root node in a file is a standalone expression, such as in 
+#! source file a function definition.
   roots <- subset(pd, pd$parent == group)
   if(recurse.groups) {
     groups <- is_grouping(roots$id, pd)
@@ -97,7 +116,7 @@ all_root_nodes <- function(pd, recurse.groups = T, group = 0){
           , subset(subs, subs$token == 'expr'))
     } else roots
   } else roots
-  #' @return parse data with for the root nodes.
+  #! @return parse data with for the root nodes.
 }
 
 is_doc_comment <- function(pd.row){
@@ -112,8 +131,9 @@ is_comment <- function(pd.row, allow.roxygen = F){
   #' check if a row is a comment
   #' @param pd.row row of parse.data
   #' @param allow.roxygen should roxygen 
-  if (nrow(pd.row) > 1) return(daply(pd.row, 'id', is_comment
-                           , allow.roxygen = allow.roxygen))
+  if (nrow(pd.row) > 1) 
+    return(unlist(llply(mlply(pd.row, data.frame), is_comment
+                       , allow.roxygen = allow.roxygen)))
   pd.row$token == "COMMENT" || 
   (allow.roxygen && pd.row$token == "ROXYGEN_COMMENT")
 }
