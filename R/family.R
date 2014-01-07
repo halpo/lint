@@ -41,7 +41,8 @@ function( id                    #< id of the root/parent node.
   while(nlevels != 0) {
     nlevels <- nlevels - 1
     old.ids <- ids
-    new.ids <- parse.data[parse.data$parent %in% ids, 'id']
+    new.ids <- parse.data[parse.data$parent %in% parents, 'id']
+    parents <- 
     ids <- unique(c(if(all.generations)ids , new.ids))
     
     if (identical(ids, old.ids)) break 

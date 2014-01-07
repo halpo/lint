@@ -25,8 +25,6 @@
 # 
 }###############################################################################
 
-
-
 strip <- function(lines, replace.data, replace.with = ''){
 #'  Strip a region from the text
 #'  
