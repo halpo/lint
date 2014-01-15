@@ -10,7 +10,7 @@ document_function <- function(
       FUN  #< Function to document
     , ...  #< Extra Documentation Arguments
     ){
-    #! Document a funcion
+    #! Document a function
     #! 
     #! This provides facilities to automatically document a function
     #! 
@@ -18,10 +18,10 @@ document_function <- function(
     srcfile <- attr(srcref, 'srcfile')
     
     srclines <- as.character.srcref(srcref, TRUE)
-    parse.data   <- getParseData(parsed <- parse(text=srclines))
+    function.parse   <- getParseData(parsed <- parse(text=srclines))
     
     fun <- as(FUN, 'documentedFunction')
-    fun@doc <- functionDocumentation(...)
+    fun@doc <- functionDocumentation(args = document_arguments(function.parse))
     return(fun) #< an object of class `<documentedFunction>`
 }
 # document_function <- document_function(document_function)
@@ -51,14 +51,16 @@ strip_lint_leads <- function(comment.text){
     gsub("^#[!^<{}]\\s*", "", comment.text)
 }
 
-inline_arguments <- function(parse.data #< `<data.frame>` from `<getParseData>`
+document_arguments <- function(function.parse #< `<data.frame>` from `<getParseData>` for a single function.
 ){
-    comments <- get_comments(parse.data)
+    #! Document Arguments from a parse.data
+    comments <- get_comments(function.parse)
     relative.comments <- subset(comments, lint.class == "RELATIVE_COMMENT")
     
     argument.comments <- 
-    relative.comments[is_argument(relative.comments$id, parse.data),]
+    relative.comments[is_argument(relative.comments$id, function.parse),]
     
+    get_arguments(argument.comments, function.parse)
 }
 is_argument <- function(id, parse.data){
     #! Test if an element of parsed data is an argument relative comment.
@@ -73,8 +75,8 @@ is_argument <- function(id, parse.data){
     family <- get_family(id, parse.data, 1, 0)
     family[1,'token'] == 'FUNCTION'
 }
-get_argument<- function( argument.comments #< `data.frame` of parse data that contain the relevant relative argument comments.
-                       , function.parse    #< the full parse data for the entire function
+get_arguments <- function( argument.comments #< `data.frame` of parse data that contain the relevant relative argument comments.
+                         , function.parse    #< the full parse data for the entire function
 ){
     #! get associated argument for argument relative comments
     #TODO: Vectorize
@@ -89,16 +91,7 @@ get_argument<- function( argument.comments #< `data.frame` of parse data that co
     })
     
     arguments <- lapply(args.splits, form_argument)
-    names(arguments) <- NULL
-    argList()
-    new("argumentsDocumentation", arguments) -> args
-    
-    as(arguments, "argumentsDocumentation") -> args
-    as(class="argumentsDocumentation", object = arguments) -> args
-    argList(arguments) -> args
-    
-   
-    
+    argList(.list=arguments)
 }
 only_arguments <- function(function.parse #< parse information for only one.function.  
                                           #^ The first row must be the root node for the function.
@@ -124,7 +117,7 @@ split_arguments <- function( argument.parse #< argument only parse data.
     return(list.args.parse) #< returns a list with parse data for each argument.
 }
 
-#{ Form Argument from parse data
+{#! Form Argument from parse data
 form_argument <- function(split.parse #< parse data for a single argument.
 ){
     #! Form a `<argumentDocumentation>` from parse data information.
@@ -152,7 +145,7 @@ find_description <- function(split.parse){
     comment.text <- get_lint_argument_descriptors(split.parse)$text
     strip_lint_leads(comment.text)
 }
-#}
+}
 
 
 

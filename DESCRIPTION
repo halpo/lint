@@ -34,5 +34,7 @@ Collate:
     'styles.spacing.R'
     'lint.patterns.R'
     'classify_comment.R'
+    'class-redirectedReference.R'
+    'class-refList.R'
     'class-lintDocumentation.R'
     'class-documentedFunction.R'

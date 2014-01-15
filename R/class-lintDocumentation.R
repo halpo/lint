@@ -1,5 +1,6 @@
+#! @include class-refList.R
 
-setRefClass("lintDocumentation", contains="VIRTUAL"
+setRefClass("lintDocumentation", contains=c("redirectedReference", "VIRTUAL")
     , methods = list(
           print = function( format=c('Rd', 'text') #< format print.
                           , file=NULL #< file to print to should. console by default.
@@ -17,7 +18,7 @@ setRefClass("lintDocumentation", contains="VIRTUAL"
         , show = function(){print(format = "text", file = "")}
         )
     )
-setMethod("show", "lintDocumentation", function(object){object$show()})
+tunnel_method("lintDocumentation", show)
 
 arg <- 
 setRefClass("argumentDocumentation", contains = "lintDocumentation"
@@ -40,27 +41,19 @@ setRefClass("argumentDocumentation", contains = "lintDocumentation"
 )
 
 argList <- 
-setRefClass( "argumentsDocumentation", contains = c("lintDocumentation")
-    , fields = list(arg.list = "list")
+setRefClass( "argumentsDocumentation", contains = c("refList")
+    , fields = list()
     , methods = list(
-        # initialize = function(...){
-        
-        # }
-          set = function(i, x){
-            stopifnot(inherits(x, 'argumentDocumentation'))
-            arg.list[[i]] <<- x
+          initialize = function(..., .list = list(...)){
+            force(.list)
+            callSuper(list=.list, class = arg$def)
         }
         , get = function(i){arg.list[[i]]}
+        , show = function(){
+            lapply(.list, use_method("format_Rd"))
+        }
     )            
 )
-# setMethod("[<-", "argumentsDocumentation"
-         # , function(object, i, x){object$set(i, x)})
-# setMethod("[[<-", "argumentsDocumentation"
-         # , function(object, i, x){object$set(i, x)})
-# setMethod("[", "argumentsDocumentation"
-         # , function(object, i){object$set(i)})
-# setMethod("[[", "argumentsDocumentation"
-         # , function(object, i){object$set(i)})
 
 
     
@@ -69,7 +62,7 @@ setRefClass("functionDocumentation", contains="lintDocumentation"
     , fields = list(
           title       = 'character'
         , description = 'character'
+        , args        = 'argumentsDocumentation'
         , return      = 'character'
-        , args        = "argumentsDocumentation"
         )
     )
