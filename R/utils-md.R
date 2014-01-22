@@ -1,17 +1,23 @@
 {###############################################################################
 # utils-md.R
-# Andrew Redd
+# (C) Andrew Redd
 # 2014-01-21
 # 
+# This file is part of the R package lint.
+#
+# lint is free software and it's distribution and use governed by the terms
+# of the GNU General Public License version 3 or greater. lint is distributed 
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# http://www.gnu.org/licenses/gpl.html
 # 
 # DESCRIPTION
 # -----------
 # Markdown conversion utilities to support markdown syntax in Lint documentation
 # 
 # 
-# 
 }###############################################################################
-
 
 md2rd <- 
 function( string             #< string with documentation.

@@ -14,6 +14,7 @@ document_function <- function(
     #! 
     #! This provides facilities to automatically document a function
     #! 
+    force(FUN)
     stopifnot(!is.null(srcref <- attr(FUN, 'srcref')))
     srcfile <- attr(srcref, 'srcfile')
     
@@ -24,10 +25,6 @@ document_function <- function(
     fun@doc <- functionDocumentation(args = document_arguments(function.parse))
     return(fun) #< an object of class `<documentedFunction>`
 }
-# document_function <- document_function(document_function)
-
-#TODO: Program converting backticks to code arguments.
-#TODO: Program converting angle brackets to link arguments.
 
 get_comments <- function(parse.data){
     transform( subset(parse.data, token %in% c('COMMENT', 'ROXYGEN_COMMENT'))
@@ -46,11 +43,28 @@ get_lint_continuation  <- make_get_lint_comments("CONTINUATION_COMMENT")
 get_lint_comments      <- make_get_lint_comments("LINT_COMMENT")
 get_lint_argument_descriptors <- 
 make_get_lint_comments(c("RELATIVE_COMMENT", "CONTINUATION_COMMENT"))
+get_function_body_parse <- function(function.parse){
+    body.parent <- tail(subset(function.parse, parent == id[1])$id, 1)
+    get_family(body.parent, function.parse)
+}
+get_previous_expr <- function(id, parse.data){
+    stopifnot(length(id) ==1)
+    this.id <- id
+    parent <- subset(parse.data, id == this.id)
+    level.data  <- 
+    get_family(id, parse.data, 1, 0)
+
+}
+
+
 
 strip_lint_leads <- function(comment.text){
     gsub("^#[!^<{}]\\s*", "", comment.text)
 }
 
+# title      
+# description
+{# Arguments
 document_arguments <- function(function.parse #< `<data.frame>` from `<getParseData>` for a single function.
 ){
     #! Document Arguments from a parse.data
@@ -121,15 +135,15 @@ split_arguments <- function( argument.parse #< argument only parse data.
 form_argument <- function(split.parse #< parse data for a single argument.
 ){
     #! Form a `<argumentDocumentation>` from parse data information.
-    arg( name        = find_name(split.parse)
-       , default     = find_default(split.parse)
-       , description = find_description(split.parse)
+    arg( name        = find_arg_name(split.parse)
+       , default     = find_arg_default(split.parse)
+       , description = find_arg_description(split.parse)
        )
 }
-find_name <- function(split.parse){
+find_arg_name <- function(split.parse){
     split.parse[1,'text']
 }
-find_default <- function(split.parse){
+find_arg_default <- function(split.parse){
     expr.parse <- 
     get_child( id = tail(split.parse[!is_comment(split.parse), ], 1)$id
              , split.parse
@@ -141,11 +155,24 @@ find_default <- function(split.parse){
 reconstitute_expression <- function(expr.parse, id = expr.parse$id){
     parse(text = getParseText(expr.parse, id=id))
 }
-find_description <- function(split.parse){
+find_arg_description <- function(split.parse){
     comment.text <- get_lint_argument_descriptors(split.parse)$text
-    strip_lint_leads(comment.text)
+    paste(strip_lint_leads(comment.text), collapse=' ')
 }
 }
+}
+# seealso    
+{# return
+# Relative return
+get_return_relative <- function(function.parse){
+    parse.data <- 
+    body.parse <- get_function_body_parse(function.parse)
+    relative.in.body <- get_lint_relative(body.parse)
+    id <- relative.in.body$id
+}
 
 
 
+# @return tag
+
+}
