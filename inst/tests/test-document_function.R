@@ -46,6 +46,7 @@ context("Documentation::function::return")
 test_that("get_return_relative", {
     FUN <- split_arguments
     srclines <- as.character(attr(FUN, 'srcref'))
+    parse.data <- 
     function.parse <- getParseData(parsed <- parse(text=srclines))
     
     
