@@ -1,4 +1,4 @@
-#! @include class-refList.R
+#' @include class-refList.R
 
 setRefClass("lintDocumentation", contains=c("redirectedReference", "VIRTUAL")
     , methods = list(
@@ -31,12 +31,14 @@ setRefClass("argumentDocumentation", contains = "lintDocumentation"
     , methods = list(
           format_Rd = function(){
             #' format for R Documentation File
-            sprintf("@param\t%s\t%s", name, description)
+            md2rd(sprintf("\\item{%s}{%s}", name, description))
         }
         , print_Rd = function(file = ""){
             #' Print R Documentation information
             cat(str_wrap(format_Rd()), file=file)
+            invisible(.self)
         }
+        , show = function(){print_Rd()}
     )
 )
 
@@ -48,9 +50,18 @@ setRefClass( "argumentsDocumentation", contains = c("refList")
             force(.list)
             callSuper(list=.list, class = arg$def)
         }
-        , get = function(i){arg.list[[i]]}
+        , format_Rd = function(){
+            #! Format for R Documentation.
+            items = lapply(.list, use_method("format_Rd"))
+            paste( "\\arguments{\n"
+                 , paste("\t", items, '\n', collapse = '')
+                 , "}\n"
+                 )
+            #! @return A character of length 1.
+        }
         , show = function(){
-            lapply(.list, use_method("format_Rd"))
+            cat(format_Rd())
+            invisible(.self)
         }
     )            
 )
@@ -63,6 +74,7 @@ setRefClass("functionDocumentation", contains="lintDocumentation"
           title       = 'character'
         , description = 'character'
         , args        = 'argumentsDocumentation'
+        , seealso     = 'character'
         , return      = 'character'
         )
     )

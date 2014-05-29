@@ -1,5 +1,9 @@
 only1 <- function(.list){
-    all(.list==.list[1])
+    if(is.list(.list)){
+        all(.list==.list[[1]])
+    } else {
+        all(.list==.list[1])
+    }
 }
 is_unity <- function(...)only1(list(...))
 is_homo <- function(.list){

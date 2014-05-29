@@ -88,14 +88,18 @@ get_ancestors <- function(id, parse.data, nancestors = Inf, aggregate=TRUE){
     nancestors <- nancestors - 1
     nparents <- length(parents)
     
-    parents <- unique(get_parent(parents, parse.data))
+    parents <- unique(get_parent(ids, parse.data))
     if(nparents == length(parents)) break
     ids <- if(aggregate) union(ids, parents)
   }
   return(parents)
 }
 get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
-  parents <- get_ancestors(id, parse.data, nancestors = nancestors, F)
+  if(nancestors){
+    parents <- get_ancestors(id, parse.data, nancestors = nancestors, F)
+  } else { 
+    parents <- id
+  }
   get_child(parents, parse.data, nchildren + nancestors)
 }
 
