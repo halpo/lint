@@ -3,3 +3,4 @@
 .*gitignore
 experiments
 ^.*\.Rproj$
+.Rprofile
