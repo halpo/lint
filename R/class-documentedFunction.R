@@ -6,6 +6,12 @@ setClass("documentedFunction", representation(doc = "functionDocumentation")
     , contains="function")
 #TODO define show method
 
+dfun <- 
+setRefClass( "DocumentedFunction", fields=list(doc = "functionDocumentation")
+           , contains="function"
+           )
+
+
 document_function <- function(
       FUN  #< Function to document
     , ...  #< Extra Documentation Arguments
@@ -176,3 +182,4 @@ get_return_relative <- function(function.parse){
 # @return tag
 
 }
+

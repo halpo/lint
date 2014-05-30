@@ -74,10 +74,6 @@ print.selfDocumentingFunction <- function(x,...){
     print(attr(x, 'arg.info'))
 }
 
-
-
-
-
 if(F){ #Debugging and Testing
     fun <- rnorm
     provided.information <- 

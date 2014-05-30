@@ -29,7 +29,7 @@ refList <- setRefClass("refList", contains = "redirectedReference"
             .list[[i]] <<- value
         }
         , get = function(i){
-            return(.list[[i]])
+            .list[[i]]
         }
         , validity  = function(){
             validif( is_homo(lapply(.list, class))
