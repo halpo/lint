@@ -114,7 +114,24 @@ find_function_args <- function(..., parse.data) {
       !(parse.data$token %in% c('expr', 'FUNCTION')))
     parse2find(function.args)
 }
-  
+
+
+#' @export
+pd_function_body <- function(..., lines, file, parse.data){
+    if(missing(parse.data)){
+        parse.data <- 
+        if(!missing(lines))
+            getParseData(parse(text=lines))
+        else if(!missing(file))
+            getParseData(parse(file=file))
+    }
+    f.nodes <- subset(parse.data, parse.data$token == "FUNCTION")
+    if(!nrow(f.nodes)) return(empty.find)
+    kids <- get_children(f.nodes$parent, parse.data, 1)
+    body.parents  <- ldply(kids, tail, 1)
+    get_children(body.parents, parse.data)
+}
+
 #' @rdname finders
 #' @export
 find_function_body <- function(..., lines, file
