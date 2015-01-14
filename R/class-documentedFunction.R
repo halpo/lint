@@ -1,5 +1,5 @@
-#' @import class-lintDocumentation.R
-#' @import class-classify_comment.R
+#' @include class-lintDocumentation.R
+#' @include classify_comment.R
 #' @export
 documentedFunction <- 
 setClass("documentedFunction", representation(doc = "functionDocumentation")
