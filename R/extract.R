@@ -57,6 +57,8 @@ function( file
     writeLines(c(head.lines, out.lines), out.file.name)
     return(length(testthat.group))
 }
+
+#' @export
 extract_tests <- 
 function( pkg = '.'
         ){

@@ -1,5 +1,3 @@
-#' @include class-refList.R
-
 setRefClass("lintDocumentation", contains=c("redirectedReference", "VIRTUAL")
     , methods = list(
           print = function( format=c('Rd', 'text') #< format print.

@@ -22,10 +22,12 @@ Suggests:
 License: GPL (>=3)
 Collate:
     'base.patterns.R'
+    'is_parse_data.R'
     'classify_comment.R'
     'class-lintDocumentation.R'
     'class-documentedFunction.R'
     'conversion.R'
+    'extract.R'
     'family.R'
     'find-utils.R'
     'finders.R'
