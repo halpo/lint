@@ -36,6 +36,7 @@
 #' @import plyr
 #' @import stringr
 #' @import methods
+#' @import refhelp
 #' @importFrom harvestr noattr
 #' @import foreach
 #' @import dostats

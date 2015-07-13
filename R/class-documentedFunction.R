@@ -1,16 +1,21 @@
-#' @import class-lintDocumentation.R
-#' @import class-classify_comment.R
+{###############################################################################
+# class-DocumentedFunction.R
+# Andrew Redd
+# 2013-10-06
+# 
+# DESCRIPTION
+# ===========
+# functions for self documenting functions
+# 
+}###############################################################################
+#' @include class-lintDocumentation.R
+#' @include classify_comment.R
+
 #' @export
 documentedFunction <- 
 setClass("documentedFunction", representation(doc = "functionDocumentation")
     , contains="function")
 #TODO define show method
-
-dfun <- 
-setRefClass( "DocumentedFunction", fields=list(doc = "functionDocumentation")
-           , contains="function"
-           )
-
 
 document_function <- function(
       FUN  #< Function to document

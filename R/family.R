@@ -29,7 +29,7 @@
 get_child_ids <- 
 function( id                    #< id of the root/parent node.
         , parse.data            #< parse data information
-        , nlevels =  Inf        #< number of levels to descend.
+        , nlevels        =  Inf #< number of levels to descend.
         , include.parent = TRUE #< should the root/parent node be included?
         , all.generations= include.parent #< should All generations(TRUE) or only the 
                                 #^ the final (FALSE) generation be returned?
@@ -50,9 +50,9 @@ function( id                    #< id of the root/parent node.
   ids
 }
 get_child <- function(id, parse.data, ...) {
-#!  @rdname get_children
-#!  @export
-  parse.data[parse.data$id %in% get_child_ids(id=id, parse.data, ...), ]
+    #!  @rdname get_children
+    #!  @export
+    parse.data[parse.data$id %in% get_child_ids(id=id, parse.data, ...), ]
 }
 get_children <- function(id, parse.data, nlevels = - 1L){
 #! Find the children of an expression
@@ -90,7 +90,7 @@ get_ancestors <- function(id, parse.data, nancestors = Inf, aggregate=TRUE){
     
     parents <- unique(get_parent(ids, parse.data))
     if(nparents == length(parents)) break
-    ids <- if(aggregate) union(ids, parents)
+    ids <- if(aggregate) union(ids, parents) else parents
   }
   return(parents)
 }
@@ -193,6 +193,23 @@ is_grouping <- function(id = pd$id, pd){
 get_groupings <- function(pd) {
   pd[is_grouping(pd=pd), ]
 }
+
+
+
+get_index <- function(id, parse.data){
+    #! Get index of id among siblings
+    kids <- get_child_ids(get_parent(id, parse.data), parse.data, 1, F)
+    which(id == kids)
+}
+id_to_expression_index <- function(id, parse.data){
+    if(length(id)>1) 
+        return(lapply(id, id_to_expression_index, parse.data))
+    a <- c(id, na.omit(get_ancestors(id, parse.data)))
+    x <- Filter(length, sapply(a, get_index, parse.data))
+    unlist(x)
+}
+
+
 
 
 fix_parent <- function(parse.data #< parse data from getParseData

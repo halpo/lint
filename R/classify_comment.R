@@ -1,6 +1,6 @@
 
 #TODO implement continuation comments
-
+#' @include is_parse_data.R
 
 lint.comments <- data.frame(
       prefix = c( "#!", "#<", "#^")
@@ -9,6 +9,11 @@ lint.comments <- data.frame(
     )
 
 classify_comment <- function(comment){
+    if(is_parse_data(comment)){
+        idx <- comment$token == "COMMENT"
+        comment[idx, "token"] <- Recall(comment[idx, "text"])
+        return(comment)
+    }
     if(!is.character(comment)) return("")
     lead <- substring(comment, 1, 2)
     ifelse( nchar(comment)>0
@@ -25,5 +30,5 @@ classify_comment <- function(comment){
 
 is_lint <- function(comment #< a character vector of comments to test
 ){
-    classify_comment(comment) %in% c("LINT_COMMENT", "RELATIVE_COMMENT")
+    classify_comment(comment) %in% lint.comments$class
 }
