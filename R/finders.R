@@ -109,8 +109,7 @@ find_function_args <- function(..., parse.data) {
          , parse.data = parse.data)[names(empty.find)]
 }
 .find_function_args1 <- function(d, ..., parse.data) {
-    p <- d$parent
-    function.args <- subset(parse.data, parse.data$parent == d$p & 
+    function.args <- subset(parse.data, parse.data$parent == d$parent & 
       !(parse.data$token %in% c('expr', 'FUNCTION')))
     parse2find(function.args)
 }

@@ -94,7 +94,15 @@ get_ancestors <- function(id, parse.data, nancestors = Inf, aggregate=TRUE){
   }
   return(parents)
 }
-get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
+get_family <- 
+function( id               #< id of the node
+        , parse.data       #< complete parse data
+        , nancestors = 0L  #< Number of ancestors to retrieve
+        , nchildren  = Inf #< Number of child nodes to retrieve
+){
+  #! Get all family nodes
+  #! 
+  #! When 
   if(nancestors){
     parents <- get_ancestors(id, parse.data, nancestors = nancestors, F)
   } else { 
@@ -187,3 +195,115 @@ get_groupings <- function(pd) {
 }
 
 
+fix_parent <- function(parse.data #< parse data from getParseData
+){
+    #! Correct Parentage
+    #! 
+    #! Between before R version 3.0.3 and 3.1.0 there was a bug introduced 
+    #! in the parser where the not all parents in the parse
+    #! data are listed as nodes.  This function corrects that problem.  
+    #! 
+    #! Currently only correcting problems in the arguments section.
+    #! I don't know if there are problems elsewhere.
+    span <- find_function_args(parse.data=parse.data)
+    
+    missing.parent <- with(parse.data, !(parent %in% id))
+    for(i in nrow(span)){
+        idx <- 
+        with( parse.data
+            , ( (line1 == span$line1 & col1  >= span$col1) )
+              | line1 > span$line1
+            & ( (line2 == span$line2 & col2  <= span$col2)
+              | line2 < span$line2)
+            )
+        parse.data[idx & missing.parent,'parent'] <- parse.data[which(idx)[1],'parent']
+    }
+    # inline fixing expr to the next expr
+    expr.idx <- parse.data$token=='expr'
+    exprs <- subset(parse.data, expr.idx)
+    expr.ids <- exprs$id
+    
+    p <- exprs$parent[missing.parent[expr.idx]]
+    n <- matrix(exprs$id, nrow= NROW(exprs$id), ncol=length(p))
+    next.expr  <- suppressWarnings(
+        apply(
+            ifelse(outer(expr.ids, p, `>=`), n, NA)
+            , 2, min, na.rm=T)
+        )
+   
+    parse.data[missing.parent & expr.idx,'parent'][is.finite(next.expr)] <- 
+        next.expr[is.finite(next.expr)]
+    
+    return(parse.data)
+}
+
+if(F){
+    sessionInfo()
+    raw <- "
+    #' title
+    function( a   #< parameter 1
+            , b=2 #< parameter 2
+            ) #< comment ending the function args.  does not mess up the parent
+            {
+            # not inline
+            (a+b)
+            # return statement
+            }"
+    p <- parse(text=raw)
+    function.parse <- 
+    pd <- 
+    parse.data<-
+    getParseData(p)
+
+    callgraph(fix_parent(pd))
+    
+    
+    raw.no.comments <- "
+    
+    function( a   
+            , b=2 
+            ) 
+            {
+            
+            (a+b)
+            
+            }"
+    p2 <- parse(text = raw.no.comments)
+    pd2 <- 
+    getParseData(p2)
+    
+    i <- !(pd2$parent %in% pd2$id)
+    p <- pd2$parent[i]
+    m <- matrix(pd2$id, nrow= NROW(pd2), ncol=length(p))
+    
+    o1 <- outer(pd2$id, p, `>`)
+    next.higher <- suppressWarnings(apply(ifelse(o1, m, NA), 2, min, na.rm=T))
+    d.higher <- abs(p - next.higher)
+    
+    o2 <- outer(pd2$id, p, `<`)
+    next.lower  <- suppressWarnings(apply(ifelse(o2, m, NA), 2, max, na.rm=T))
+    d.lower <- abs(p- next.lower)
+    
+    
+    
+    cbind(exprs, next.expr)
+
+    pd2$parent[i] <-
+    ifelse(d.higher <= d.lower, next.higher, next.lower)
+    
+    callgraph(pd2)
+    
+    apply(o, 1, `[`, x=)
+    
+    min(pd2$id[pd2$id >=p])
+    
+    j <- 
+    merge(pd, pd2, by=.T(line1, col1, line2, col2, text))
+    j[.T(id.x, parent.x, id.y, parent.y, text)]
+    
+    g <- callgraph(pd2)
+    
+    
+    p3  <- parse(text=(raw3 <- "(a+b)"))
+    pd3 <- getParseData(p3)
+}

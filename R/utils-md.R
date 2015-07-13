@@ -48,6 +48,3 @@ function( string             #< string with documentation.
     string <- gsub("(?<!\\\\)<([^>]+)>", "\\\\link{\\1}", string, perl=T)
     string
 }
-
-
-

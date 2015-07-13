@@ -13,9 +13,17 @@ setRefClass("lintDocumentation", contains=c("redirectedReference", "VIRTUAL")
                     .self$print_text(file=file)
                 else .self$print(format=format, file=file)
             }
-        , print_Rd   = function(file="", ...){}
-        , print_text = function(file="", ...){print_Rd(file=file, ...)}
-        , show = function(){print(format = "text", file = "")}
+        , format_Rd  = function(){}
+        , format_text= function(){}
+        , format     = function(mode = 'Rd'){
+            if(mode == 'Rd') .self$format_Rd()
+            else if(mode == 'text') .self$format_text()
+            else stop("unknown mode")
+        }
+        , print      = function(mode='Rd', ...){
+            base::print(.self$format(mode=mode), ...)
+        }
+        , show       = function(){.self$print(format = "text", file = "")}
         )
     )
 tunnel_method("lintDocumentation", show)
@@ -63,7 +71,7 @@ setRefClass( "argumentsDocumentation", contains = c("refList")
             cat(format_Rd())
             invisible(.self)
         }
-    )            
+    )
 )
 
 
@@ -71,10 +79,18 @@ setRefClass( "argumentsDocumentation", contains = c("refList")
 functionDocumentation <- 
 setRefClass("functionDocumentation", contains="lintDocumentation"
     , fields = list(
-          title       = 'character'
+          name        = 'character'
+        , alias       = 'character'
+        , title       = 'character'
         , description = 'character'
         , args        = 'argumentsDocumentation'
         , seealso     = 'character'
         , return      = 'character'
         )
+    , methods = list(
+          format_Rd = function(){
+            #!TODO
+        }
+        
     )
+)

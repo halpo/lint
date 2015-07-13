@@ -17,7 +17,7 @@ function (..., mc=match.call)
 {
     #! Utilities for checking if a class is valid
     #! 
-    #! @seealso 
+    #! @seealso stopifnot
     #! 
     n <- length(ll <- list(...))
     if (n == 0L) 
