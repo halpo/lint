@@ -1,30 +1,28 @@
 setRefClass("lintDocumentation", contains=c("redirectedReference", "VIRTUAL")
     , methods = list(
           print = function( format=c('Rd', 'text') #< format print.
-                          , file=NULL #< file to print to should. console by default.
-            ){
-                #! Prints documentation to an Rd file.
-                format <- match.arg(format)
+                          , file=""   #< file to print to. console by default.
+                          , ...       #< Passed on to `<cat>`.
+                          ){
+                "Prints documentation to an Rd file."
                 if(format == 'Rd')
-                    .self$print_Rd(file=file)
+                    cat(.self$format_Rd(), file=file, ...)
                 else if(format == 'text')
-                    .self$print_text(file=file)
-                else .self$print(format=format, file=file)
+                    cat(.self$format_text(), file=file, ...)
+                else 
+                    cat(.self$format(mode=mode), file=file, ...)
             }
         , format_Rd  = function(){}
         , format_text= function(){}
         , format     = function(mode = 'Rd'){
+            "Format documentation into a single string."
             if(mode == 'Rd') .self$format_Rd()
             else if(mode == 'text') .self$format_text()
             else stop("unknown mode")
         }
-        , print      = function(mode='Rd', ...){
-            base::print(.self$format(mode=mode), ...)
-        }
         , show       = function(){.self$print(format = "text", file = "")}
         )
     )
-tunnel_method("lintDocumentation", show)
 
 arg <- 
 setRefClass("argumentDocumentation", contains = "lintDocumentation"
@@ -35,14 +33,21 @@ setRefClass("argumentDocumentation", contains = "lintDocumentation"
         , description = 'character'
         )
     , methods = list(
-          format_Rd = function(){
-            #' format for R Documentation File
+        format_text = function(){
+            #! Format for text printing.
+            d <- if(!is.null(default))
+                sprintf("=%s", deparse(default))
+            
+            sprintf("%s\t%s", name, description)
+        }
+        , format_Rd = function(){
+            #! format for R Documentation File
             md2rd(sprintf("\\item{%s}{%s}", name, description))
         }
         , print_Rd = function(file = ""){
-            #' Print R Documentation information
+            #! Print R Documentation information
             cat(str_wrap(format_Rd()), file=file)
-            invisible(.self)
+            invisible(self)
         }
         , show = function(){print_Rd()}
     )
@@ -67,7 +72,7 @@ setRefClass( "argumentsDocumentation", contains = c("refList")
         }
         , show = function(){
             cat(format_Rd())
-            invisible(.self)
+            invisible(self)
         }
     )
 )
@@ -87,7 +92,13 @@ setRefClass("functionDocumentation", contains="lintDocumentation"
         )
     , methods = list(
           format_Rd = function(){
-            #!TODO
+            s <- paste0(.self$title, "\n\n")
+            s <- paste0(s, format(.self$args), "\n\n")
+            if(!is.null(.self$description))
+                s <- paste0(s, .self$description, "\n\n")
+            if(!is.null(.self$seealso))
+                s <- paste0(s, paste(.self$seealso, collapse=", ") , "\n\n")
+            return(s)
         }
         
     )

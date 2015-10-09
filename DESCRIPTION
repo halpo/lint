@@ -21,6 +21,7 @@ Suggests:
     roxygen2
 License: GPL (>=3)
 Collate:
+    'arg.R'
     'base.patterns.R'
     'is_parse_data.R'
     'classify_comment.R'
