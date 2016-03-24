@@ -1,32 +1,32 @@
-{############################################################################### 
+{###############################################################################
 # is_parse_data.R
 # This file is part of the R package lint.
-# 
+#
 # Copyright 2012 Andrew Redd
 # Date: 6/16/2012
-# 
+#
 # DESCRIPTION
 # ===========
 # testing for parse data expressions.
-# 
+#
 # LICENSE
 # ========
 # lint is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software 
-# Foundation, either version 3 of the License, or (at your option) any later 
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
 # version.
-# 
-# lint is distributed in the hope that it will be useful, but WITHOUT ANY 
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#
+# lint is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along with 
+#
+# You should have received a copy of the GNU General Public License along with
 # this program. If not, see http://www.gnu.org/licenses/.
-# 
+#
 }###############################################################################
 
 
-is_parse_data <- 
+is_parse_data <-
 function( df #< a [data.frame] object.
         ){
     #! Test if the given `df` data.frame conformes to `<parse-data>` conventions.
@@ -36,9 +36,9 @@ function( df #< a [data.frame] object.
             , "token", "terminal", "text") %in% names(df))
 }
 
-assignment.opperators <- 
+assignment.opperators <-
     c("LEFT_ASSIGN", "RIGHT_ASSIGN", "EQ_ASSIGN")
-is_pd_assignment <- 
+is_pd_assignment <-
 function( pd            #< parse data of assignemnt
         , id = all_root_nodes(pd)$id[1] #< id of interest.
         ){
@@ -47,7 +47,7 @@ function( pd            #< parse data of assignemnt
         FALSE
     kids.pd <- get_children(id=id, pd, nlevels=1)[[1]]
     kids.pd <- kids.pd[kids.pd[['token']] != 'expr', ]
-    
+
     any(kids.pd[['token']] %in% assignment.opperators)
 }
 if(F){#! @testthat is_pd_assignment
@@ -63,11 +63,11 @@ if(F){#! @testthat is_pd_assignment
     expect_true(is_pd_assignment(pd))
 }
 
-get_pd_assign_value <- 
-function( pd #< The [parse-data] object, representing an assignment 
+get_pd_assign_value <-
+function( pd #< The [parse-data] object, representing an assignment
         ){
     #! get the value of an assignment operator expression.
-    #! 
+    #!
     #! This function assumes correct structure and does not check for compliance.
     kids.pd <- sort(get_child(id=all_root_nodes(pd)$id, pd, 1, FALSE))
     switch( kids.pd[2, 'token']
@@ -76,7 +76,7 @@ function( pd #< The [parse-data] object, representing an assignment
           , EQ_ASSIGN    = get_family( id = tail(kids.pd$id,1), pd)
           )
 }
-get_pd_assign_value_id <- 
+get_pd_assign_value_id <-
 function( pd #< The [parse-data] object, representing an assignment
         , id = all_root_nodes(pd)$id
         ){
@@ -112,34 +112,65 @@ val.pd <- get_pd_assign_value(pd)
 expect_true("NUM_CONST" %in% val.pd$token)
 }
 
-get_pd_assign_variable <- 
-function( pd #< The [parse-data] object, representing an assignment 
+get_pd_assign_variable <-
+function( pd #< The [parse-data] object, representing an assignment
         ){
     #! get the value of an assignment operator expression.
-    #! 
+    #!
     #! This function assumes correct structure and does not check for compliance.
-    kids.pd <- sort(get_child(id=all_root_nodes(pd)$id, pd, 1, FALSE))
+    kids.pd <- sort(get_child(id=all_root_ids(pd), pd, 1, FALSE))
     switch( kids.pd[2, 'token']
           , RIGHT_ASSIGN = get_family( id = tail(kids.pd$id,1), pd)
-          , LEFT_ASSIGN  = get_family( id = head(kids.pd$id,1), pd)
+          , LEFT_ASSIGN  = get_family( id = head(kids.pd$id,1), pd, 0)
           , EQ_ASSIGN    = get_family( id = head(kids.pd$id,1), pd)
           )
+    #! @return will return the parse data, which is typically rooted by an 'expr' token.
 }
-get_pd_assign_variable_id <- 
+if(F){#!@testthat
+"hello_world <- function(){
+    print('hello world')
+}
+" %>%
+parse(text = .) %>%
+get_parse_data() %>%
+sort-> pd
+
+    expect_true(is_pd_assignment(pd))
+
+    var.pd <- get_pd_assign_variable(pd)
+    expect_equal(all_root_nodes(var.pd)$token, 'expr')
+    expect_equal(getParseText(var.pd, all_root_ids(var.pd)), "hello_world")
+
+}
+get_pd_assign_variable_id <-
 function( pd #< The [parse-data] object, representing an assignment
         , id = all_root_nodes(pd)$id
         ){
     #! Get the id for the variable portion of an assignment operator expression.
     if(length(id) > 1)
         sapply(id, get_pd_assign_variable_id, pd=pd)
-    child.ids <- get_child_ids(id=id, pd=pd, 1, FALSE)
-    type <- subset(pd, id %in% child.ids & token %in% assignment.opperators)$token
-    switch( type
+    child.ids   <- get_child_ids(id=id, pd=pd, 1, FALSE)
+    assign.pd   <- subset(pd, id %in% child.ids & token %in% assignment.opperators)
+    switch( assign.pd$token
           , RIGHT_ASSIGN = max(child.ids)
-          , min(child.ids)
+          , min(setdiff(child.ids, assign.pd$id))
           )
 }
+if(F){#!@testthat
+"hello_world <- function(){
+    print('hello world')
+}
+" %>%
+parse(text = .) %>%
+get_parse_data() %>%
+sort-> pd
 
+    expect_true(is_pd_assignment(pd))
+
+    var.pd <- get_pd_assign_variable(pd)
+    var.id <- get_pd_assign_variable_id(pd)
+    expect_equal(var.id, all_root_ids(var.pd))
+}
 
 is_pd_function <-
 function( pd #< a [parse-data] object
