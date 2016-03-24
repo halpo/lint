@@ -20,6 +20,7 @@ Imports:
     foreach,
     assertthat,
     yaml,
+    magrittr,
     R6
 Suggests:
     testthat,
@@ -27,10 +28,7 @@ Suggests:
 License: GPL (>=3)
 Collate:
     'arg.R'
-<<<<<<< HEAD
     'arguments-list.R.R'
-=======
->>>>>>> e630fb90d8b8d43e0512ddb360c4e91a5c8c053f
     'base.patterns.R'
     'is_parse_data.R'
     'classify_comment.R'
@@ -41,7 +39,6 @@ Collate:
     'document_function.R'
     'document_package.R'
     'examples.R'
-    'extract.R'
     'family.R'
     'find-utils.R'
     'finders.R'
@@ -64,5 +61,6 @@ Collate:
     'references.R'
     'rewrap.R'
     'self_documenting.R'
+    'tests.R'
     'utils-md.R'
     'zzz.R'
