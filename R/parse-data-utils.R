@@ -1,5 +1,5 @@
 {############################################################################### 
-# styles.performance.R
+# parse-data-utils.R
 # This file is part of the R package lint.
 # 
 # Copyright 2012 Andrew Redd
@@ -7,7 +7,7 @@
 # 
 # DESCRIPTION
 # ===========
-# pre-defined performance problems.
+# Utilities for dealing with parse-data data.frames.
 # 
 # LICENSE
 # ========
@@ -25,31 +25,21 @@
 # 
 }###############################################################################
 
-#' @name performance-styles
-#' @rdname performance-styles
-#' @docType data
-#' @title Performance Enhancing Styles
-#' @description
-#'  This collection of styles assert checks on known performance improvements.
-#' @format  Lint style checks.
-#' @seealso lint
-#' 
-#' @include base.patterns.R
-#' @exportPattern ^performance\\..*$
-NULL
-
-#' @rdname performance-styles
-#' @export performance.square
-performance.square <- {list(
-    pattern = regex(sprintf("(%s)\\s*\\*\\s*\\1", name.pattern))
-)}
-.testinfo.performance.square <- {list(
-    lines = c('2*2'
-            , 'a*a'
-            , 'a^2')
-  , results = data.frame(line1=2, col1=1, line2=2, col2=3)
-)}
+`sort.parse-data` <- 
+function( x #< a [parse-data] object.
+        , decreasing = FALSE  #< Decreasing?
+        ){
+    o <- do.call(order, x)
+    if(decreasing) o <- rev(o)
+    x[o, ]
+}
 
 
-
+reconstitute_expression <- 
+function( pd            #< A [parse-data] object
+        , id = pd$id    #< 
+        ){
+    #< convert the `pd` parse-data to an expression.
+    parse(text = getParseText(pd, id=id))
+}
 

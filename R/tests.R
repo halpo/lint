@@ -25,27 +25,45 @@
 # 
 }###############################################################################
 
+
+get_test_block <- function(pd){
+   
+   #! return the testing block if a testing block
+   
+   if(!identical(pd[1:3,'token'], c('expr', 'IF', '('))) return(NULL)
+   if(!( ( pd[4,'token'] == "NUM_CONST" && pd[4,'text'] == "FALSE")
+       ||( pd[4,'token'] == "SYMBOL"    && pd[4,'text'] == "F")
+       )) return(NULL)
+
+}
+
+
+
 extract_testthat <- 
-function( file
-        , parse.data = NULL
-        , dir=file.path(".", "tests", "testthat")
+function( file          #< file to extract blocks from
+        , pd = NULL     #< Parse data for file
+        , dir=file.path(".", "tests", "testthat")  #< directory where to store extracted blocks.
         ){
     #! Extract `if(F){#! @TESTTHAT }` blocks from file
     
-    if(is.null(parse.data)){
+    if(is.null(pd)){
         lines <- readLines(file)
-        parse.data <- getParseData(p <- parse(text=lines, keep.source=TRUE))
-        parse.data <- classify_comment( parse.data )
+        pd <- getParseData(p <- parse(text=lines, keep.source=TRUE))
+        pd <- classify_comment( pd )
     }
 
-    comments <- subset(parse.data, token == "LINT_COMMENT")
+    
+    comments <- extract_tagged_lines(get_lint_comments(pd), "test(that|ing)?")
+
+    lapply(comments$id, get_family, pd=pd, nancestors=2)
+    get_family(pd, id=comments$id, nancestors=2)
     testthat.group <- subset(comments, 
         grepl("@testthat\\b", text, ignore.case=TRUE, perl=TRUE)
     )$parent
     
     if(length(testthat.group)==0)return(0)
     
-    fam <- get_family(testthat.group, parse.data)
+    fam <- get_family(testthat.group, pd)
    
     out.file.name <- file.path(dir, paste0("test-", basename(file)))
     
@@ -56,6 +74,25 @@ function( file
                    )
     writeLines(c(head.lines, out.lines), out.file.name)
     return(length(testthat.group))
+}
+if(FALSE){#! @testthat
+'hello_world <- function(){
+    print("hello world")
+}
+if(FALSE){#!@testthat
+    expect_output(hello_world(), "hello world")
+}
+
+f2 <- function(){stop("this does nothing")}
+if(F){#! @test
+expect_error(f2())
+}
+' %>% textConnection() ->file
+extract_testthat()
+    
+    
+    
+    
 }
 
 #' @export
@@ -83,5 +120,5 @@ function( pkg = '.'
     lapply(files, extract_testthat, dir=testthat.dir )
 }
         
-
+#ENHANCEMENT: run_embedded_tests.
 

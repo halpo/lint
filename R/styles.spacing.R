@@ -213,7 +213,7 @@ spacing.spacearoundequals <- {list(
 #' @rdname stylechecks
 #' @export
 spacing.twobeforecomments <- {list(
-    pattern = perl("(?<=[^\\s\\{\\}#])(#)|(?<=[^\\s]\\s)(#)")
+    pattern = regex("(?<=[^\\s\\{\\}#])(#)|(?<=[^\\s]\\s)(#)")
   , exclude.region = c("find_string", 'find_inside_comment')
   , message = "needs two spaces spacing before inline comments")
 }

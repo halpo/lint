@@ -1,6 +1,0 @@
-^\.Rproj\.user$
-.*\.Rproj
-.*gitignore
-experiments
-^.*\.Rproj$
-.Rprofile

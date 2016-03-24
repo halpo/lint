@@ -1,0 +1,60 @@
+---
+title:  'lint: Programming standards'
+author:
+- Andrew Redd
+tags: [internal]
+...
+
+# Naming Conventions
+
+* **functions** named in lower case with words separated by underscore '_'.  Example: `function_name`.
+    + functions that return a logical should begin with `is_`.
+* **variables** named in lower case with words separated by period '.'. Example:  `data.set`.
+    + includes internal variables.
+    + includes arguments to functions with the exception of arguments expected to be functions.
+* **classes** lower case with wordsseparated by dash '-'.
+    + This Packge is only using S3 methods.
+    + Note that this requires S3 methods to be backtick quoted when making assignments.
+    + class contructors are named by replacing the dash in the class name with an underscore.
+        - Example: `class_name` for `class-name`
+    + Class documentation is included in the class constructor if applicable.
+    
+
+# Cannonical Variable Names
+
+To simplify interpretation accross functions all function that accept similar arguments
+must use the same name.
+
+* `pd`, used for internal parse data objects, obtained from `get_parse_data`, 
+   and so assumes that the comments are classified.
+* `fun`, used for functions, either with or without `srcref`, attributes.
+* `id`, indicates an integer that corresponds to value in the `id` column of a `pd` parse data argument.
+  should only be present when a `pd` argument is present.
+* Conversion functions should be of the form `TO_from_FROM`  however the `TO` and `FROM` may be abbreviated.
+    + example `arguments_list_from_pd
+
+## Parse Data Sub-system
+* function names should be of the form pd_
+    + pd should be the first argument and 
+    + if possible other arguments should have interential defaults.
+* Subsetted parse data internal objects should be suffixed with `.pd`
+
+
+#Comments
+
+### TODO
+Document tasks with `#TODO:`  as a comment in the code with the description of the task following the colon.
+
+# Class Constructions.
+
+* All documentation objects should be S3 classes which inherit from `lint-documentation`.
+* The following methods should be programed for every documentation object:
+    + `format_Rd(x, ...)` - Used for making documentation files.
+    + `format_md(x, ...)` - Used for cleaner output.
+    + `print(x, ...)` - Used for printing interactively.
+
+    
+    
+    
+    
+    

@@ -1,0 +1,2 @@
+setwd("..")
+sys.source(".Rprofile")

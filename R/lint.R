@@ -85,7 +85,7 @@ check_pattern <- function(pattern
     foreach(pat=pattern, .combine=merge_find, .multicombine=TRUE
            , .inorder=FALSE) %do% check_pattern(pat, lines, ...)
   } else {
-    problem    <- str_locate(pattern=perl(pattern), string=lines)
+    problem    <- str_locate(pattern=regexp(pattern), string=lines)
     locate2find(problem)
   }
 }

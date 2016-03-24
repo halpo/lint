@@ -28,114 +28,168 @@
 
 get_child_ids <- 
 function( id                    #< id of the root/parent node.
-        , parse.data            #< parse data information
+        , pd                    #< parse data information
         , nlevels        =  Inf #< number of levels to descend.
         , include.parent = TRUE #< should the root/parent node be included?
         , all.generations= include.parent #< should All generations(TRUE) or only the 
-                                #^ the final (FALSE) generation be returned?
+                                          #^ the final (FALSE) generation be returned?
 ) {
-#!  Get all nodes that are children of `id`.
-#!  @export
-  parents <- id
-  ids <- if(include.parent) parents else integer(0)
-  while(nlevels != 0) {
-    nlevels <- nlevels - 1
-    old.ids <- ids
-    new.ids <- parse.data[parse.data$parent %in% parents, 'id']
-    parents <- 
-    ids <- unique(c(if(all.generations)ids , new.ids))
-    
-    if (identical(ids, old.ids)) break 
-  }
-  ids
+    #!  Get all nodes that are children of `id`.
+    #!  @export
+    parents <- id
+    ids <- if(include.parent) parents else integer(0)
+    while(nlevels != 0) {
+        nlevels <- nlevels - 1
+        old.ids <- ids
+        new.ids <- pd[pd$parent %in% parents, 'id']
+        parents <- 
+        ids <- unique(c(if(all.generations)ids , new.ids))
+        
+        if (identical(ids, old.ids)) break 
+    }
+    ids
 }
-get_child <- function(id, parse.data, ...) {
+get_child <- function(id, pd, ...) {
     #!  @rdname get_children
     #!  @export
-    parse.data[parse.data$id %in% get_child_ids(id=id, parse.data, ...), ]
+    pd[pd$id %in% get_child_ids(id=id, pd, ...), ]
 }
-get_children <- function(id, parse.data, nlevels = - 1L){
-#! Find the children of an expression
-#! 
-#!  This takes the \code{parse.data} and find all the children of the expression
-#!  with the given \code{id}.
-#! 
-#!  @param id the id of the given expression in \code{parse.data}
-#!  @param parse.data the data from a parsed file or expression.  
-#!    The results of \code{\link{getParseData}}.
-#!  @param nlevels the number of levels to search.  If a negative number is 
-#!    given all children will be found.
-#! 
-#! @family  parse-functions
-#! @export
-  if (inherits(id, 'data.frame') && 'id' %in% names(id))
-    id <- id$id
-  stopifnot(inherits(id, 'integer'))
-  return(alply(id, 1, get_child, parse.data=parse.data, nlevels=nlevels))
+get_children <- function(id, pd, nlevels = -1L){
+    #! Find the children of an expression
+    #! 
+    #!  This takes the \code{pd} and find all the children of the expression
+    #!  with the given \code{id}.
+    #! 
+    #!  @param id the id of the given expression in \code{pd}
+    #!  @param pd the data from a parsed file or expression.  
+    #!    The results of \code{\link{getParseData}}.
+    #!  @param nlevels the number of levels to search.  If a negative number is 
+    #!    given all children will be found.
+    #! 
+    #! @family  parse-functions
+    #! @export
+    if (inherits(id, 'data.frame') && 'id' %in% names(id))
+        id <- id$id
+    stopifnot(inherits(id, 'integer'))
+    return(alply(id, 1, get_child, pd=pd, nlevels=nlevels))
 }
 find_children <- function(...){
-#'  @rdname get_children
-#'  @export
-  parse2find(get_children(...))
+    #!  @rdname get_children
+    #!  @export
+    parse2find(get_children(...))
 }
-get_parent <- function(id, parse.data) {
-    parse.data[match(id, parse.data$id), 'parent']
+get_parent <- function(id, pd) {
+    pd[match(id, pd$id), 'parent']
 }
-get_ancestors <- function(id, parse.data, nancestors = Inf, aggregate=TRUE){
+get_ancestors <- function(id, pd, nancestors = Inf, aggregate=TRUE){
   ids <- id
   parents <- integer(0)
   while(nancestors > 0L){
     nancestors <- nancestors - 1
     nparents <- length(parents)
     
-    parents <- unique(get_parent(ids, parse.data))
+    parents <- unique(get_parent(ids, pd))
     if(nparents == length(parents)) break
     ids <- if(aggregate) union(ids, parents) else parents
   }
   return(parents)
 }
-get_family <- function(id, parse.data, nancestors = 0L, nchildren = Inf){
+get_family <- function(id, pd, nancestors = 0L, nchildren = Inf){
   if(nancestors){
-    parents <- get_ancestors(id, parse.data, nancestors = nancestors, F)
+    parents <- get_ancestors(id, pd, nancestors = nancestors, F)
   } else { 
     parents <- id
   }
-  get_child(parents, parse.data, nchildren + nancestors)
+  get_child(parents, pd, nchildren + nancestors)
 }
 
-all_root_nodes <- function(pd                  #< parse data from `<getParseData>`
-                          , recurse.groups = T #< descend into grouped code \code{\{\}}?
-                          , group = 0          #< the grouping node id, used for recursion
-){
-#! Find all root node from parse data
-#! 
-#! A root node in a file is a standalone expression, such as in 
-#! source file a function definition.
-  roots <- subset(pd, pd$parent == group)
-  if(recurse.groups) {
-    groups <- is_grouping(roots$id, pd)
-    if(any(groups)) {
-      subs <- ldply(roots$id[groups], all_root_nodes, pd=pd
-                   , recurse.groups = recurse.groups)
-      rbind(roots[!groups,]
-          , subset(subs, subs$token == 'expr'))
+get_firstborn_ids <-
+function(pd, id=all_root_ids(pd)){
+    child.ids <- lapply(id, get_child_ids, pd=pd, nlevels=1, include.parent=FALSE)
+    Filter(is.finite, sapply(child.ids, min))
+}
+get_firstborn <- 
+function(pd, id=all_root_ids(pd)){
+    pd[pd$id %in% get_firstborn_ids(pd=pd, id=id), ] 
+}
+
+all_root_ids <- 
+function( pd                 #< parse data from `<get_parse_data>`
+        , recurse.groups = T #< descend into grouped code \code{\{\}}?
+        ){
+    #! give the root ids in `pd`
+    excluded.root.tokens <- c("'{'", "'}'", lint.comments$class, "NORMAL_COMMENT")
+    roots <- pd[ !(pd$parent %in% pd$id)
+               & !(pd$token %in% excluded.root.tokens)
+               , 'id']
+    while(any(group.ind <- is_grouping(roots, pd))){
+        groups <- roots[group.ind]
+        sub.ids <- 
+            pd[ pd$parent %in% groups
+              & !(pd$token %in% excluded.root.tokens)
+              , 'id']
+        roots <- sort(c(roots[!group.ind], sub.ids))
+    }
+    return(roots)
+}
+if(F){#!@testthat all_root_ids
+"a<-1
+{# section 1
+b<- 2
+{# section 2
+c <- 3
+}# end of section 1
+d<- 4
+}# end of section 2
+e <- 5
+"->text
+pd <- get_parse_data(parse(text=text))
+expect_equal(all_root_ids(pd), c(7, 19, 31, 47, 63))
+
+
+}
+
+all_root_nodes <- 
+function( pd                 #< parse data from `<get_parse_data>`
+        , recurse.groups = T #< descend into grouped code \code{\{\}}?
+        , group = NULL       #< the grouping node id, used for recursion
+        ){
+    #! Find all root node from parse data
+    #! 
+    #! A root node in a file is a standalone expression, such as in 
+    #! source file a function definition.
+    #! when discussing a subset it is any expression that does not have 
+    #! a parent in the subset.
+    if(is.null(group))
+        roots <- subset(pd, !(pd$parent %in% pd$id))
+    else
+        roots <- subset(pd, pd$parent == group)
+    if(recurse.groups) {
+        groups <- is_grouping(roots$id, pd)
+        if(any(groups)) {
+            subs <- ldply( roots$id[groups], all_root_nodes, pd=pd
+                         , recurse.groups = recurse.groups
+                         )
+            rbind( roots[!groups,]
+                 , subset(subs, subs$token == 'expr')
+                 )
+        } else roots
     } else roots
-  } else roots
-  #! @return parse data with for the root nodes.
+    #! @return parse data with for the root nodes.
 }
 
 is_doc_comment <- function(pd.row){
-  #' Check if a row represent a comment
-  #' @param pd.row row of parse data
+  #! Check if a row represent a comment
+  #! @param pd.row row of parse data
   pd.row$token == "ROXYGEN_COMMENT"
 }
 get_all_doc_comments <- function(pd){
   subset(pd, pd$token == "ROXYGEN_COMMENT")
 }
 is_comment <- function(pd.row, allow.roxygen = F){
-  #' check if a row is a comment
-  #' @param pd.row row of parse.data
-  #' @param allow.roxygen should roxygen 
+  #! check if a row is a comment
+  #! @param pd.row row of pd
+  #! @param allow.roxygen should roxygen 
   if (nrow(pd.row) > 1) 
     return(unlist(llply(mlply(pd.row, data.frame), is_comment
                        , allow.roxygen = allow.roxygen)))
@@ -144,11 +198,11 @@ is_comment <- function(pd.row, allow.roxygen = F){
 }
 
 is_root <- function(.id = pd$id, pd){
-#' test if a node is a root node
-  #' @inheritParams is_grouping
-  #' @description
-  #' A root node is defined to be a node that either has no parent 
-  #' or whose parent is a grouping node.
+  #! test if a node is a root node
+  #! @inheritParams is_grouping
+  #! @description
+  #! A root node is defined to be a node that either has no parent 
+  #! or whose parent is a grouping node.
   if(length(.id) > 1) 
     return(laply(.id, is_root, pd))
   pd.row <- pd[pd$id == .id, ]
@@ -158,7 +212,10 @@ is_root <- function(.id = pd$id, pd){
   if (is_grouping(parent, pd)) return(TRUE)
   return(FALSE)
 }
-ascend_to_root <- function(row = pd, pd) {
+ascend_to_root <- 
+function( row = pd
+        , pd
+        ) {
   if (nrow(row) > 1) return(daply(row, 'id', ascend_to_root, pd))
   if(is_root(row$id, pd)) return(row$id)
   parent <- row$parent
@@ -166,21 +223,21 @@ ascend_to_root <- function(row = pd, pd) {
   while(!is_root(parent, pd)) 
     parent <- get_parent(parent, pd)
   return(parent)
-  #' @return the parent id for the row.
+  #! @return the parent id for the row.
 }
 
 
 is_grouping <- function(id = pd$id, pd){
-#' test if an id is a grouping element
-  #' @param id id number in \code{pd}
-  #' @param pd parse data to use to check \code{id}
+  #! test if an id is a grouping element
+  #! @param id id number in \code{pd}
+  #! @param pd parse data to use to check \code{id}
   if(length(id) > 1) return(laply(id, is_grouping, pd))
   row <- pd[pd$id == id, ]
   child <- get_child(id, pd, 1)
   return(  nrow(child)
         && child$token[1] == "'{'"
         && (row$parent == 0 || is_grouping(row$parent, pd)))
-  #' @return a logical indicating if the root node(s) is a grouping node or not
+  #! @return a logical indicating if the root node(s) is a grouping node or not
 }
 get_groupings <- function(pd) {
   pd[is_grouping(pd=pd), ]
@@ -188,19 +245,17 @@ get_groupings <- function(pd) {
 
 
 
-get_index <- function(id, parse.data){
+get_index <- function(id, pd){
     #! Get index of id among siblings
-    kids <- get_child_ids(get_parent(id, parse.data), parse.data, 1, F)
+    kids <- get_child_ids(get_parent(id, pd), pd, 1, F)
     which(id == kids)
 }
-id_to_expression_index <- function(id, parse.data){
+id_to_expression_index <- function(id, pd){
     if(length(id)>1) 
-        return(lapply(id, id_to_expression_index, parse.data))
-    a <- c(id, na.omit(get_ancestors(id, parse.data)))
-    x <- Filter(length, sapply(a, get_index, parse.data))
+        return(lapply(id, id_to_expression_index, pd))
+    a <- c(id, na.omit(get_ancestors(id, pd)))
+    x <- Filter(length, sapply(a, get_index, pd))
     unlist(x)
 }
-
-
 
 

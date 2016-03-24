@@ -208,7 +208,7 @@ do_results_overlap_1 <- function(x, y, strict.contains) {
     return(FALSE)
 }
 do_results_overlap <- function(x, y = x, strict.contains = FALSE) {
-    #' @note assumes x and y are find results formatted data frames.
+    #! @note assumes x and y are find results formatted data frames.
     force(x)
     force(y)
     y <- mlply(y, data.frame)
@@ -218,7 +218,7 @@ do_results_overlap <- function(x, y = x, strict.contains = FALSE) {
         z[i, j] <- do_results_overlap_1(x[[i]], y[[j]]
                                         , strict.contains = strict.contains)
     return(z)
-    #' @return logical matrix of dimension \code{nrow(x)} by \nrow{nrow(y)}.
+    #! @return logical matrix of dimension \code{nrow(x)} by \nrow{nrow(y)}.
 }
 
 merge_find <- function(...){

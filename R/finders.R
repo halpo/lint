@@ -36,7 +36,7 @@
 #'  \enumerate{
 #'      \item file
 #'      \item lines
-#'      \item parse.data
+#'      \item pd
 #'  }
 #'  Order of arguments is not guaranteed so explicit names use is required, 
 #'  since use of named arguments is guaranteed.
@@ -51,13 +51,13 @@
 #'                classes to find.
 #' @param file the file being examined.
 #' @param lines the lines being examined.
-#' @param parse.data data from \code{\link{getParseData}}
+#' @param pd data from \code{\link{getParseData}}
 #' @param ... extra arguments that include \code{file}, and \code{lines}
 #' 
 #' @export
 make_class_finder <- function(classes){
-    f <- function(..., parse.data) {
-        rows  <- subset(parse.data, parse.data$token %in% classes)
+    f <- function(..., pd) {
+        rows  <- subset(pd, pd$token %in% classes)
         if(nrow(rows) == 0) return(empty.find)
         return(rows[c('line1', 'col1', 'line2', 'col2')])
     }
@@ -77,8 +77,8 @@ find_basic_comment <- make_class_finder("COMMENT")
 
 #' @rdname finders
 #' @export
-find_inside_comment <- function(...,parse.data) {
-    df <- find_basic_comment(..., parse.data = parse.data)
+find_inside_comment <- function(...,pd) {
+    df <- find_basic_comment(..., pd = pd)
     df$col1 <- df$col1 + 1
     subset(df, df$col2 > df$col1 | df$line2 > df$line1)
 }
@@ -103,54 +103,57 @@ find_number <- make_class_finder("NUM_CONST")
 
 #' @rdname finders
 #' @export
-find_function_args <- function(..., parse.data) {
-    ftokens <- subset(parse.data, parse.data$token == "FUNCTION")
+find_function_args <- function(..., pd) {
+    ftokens <- subset(pd, pd$token == "FUNCTION")
     ddply(ftokens, "id" , .find_function_args1
-         , parse.data = parse.data)[names(empty.find)]
+         , pd = pd)[names(empty.find)]
 }
-.find_function_args1 <- function(d, ..., parse.data) {
+.find_function_args1 <- function(d, ..., pd) {
     p <- d$parent
-    function.args <- subset(parse.data, parse.data$parent == d$p & 
-      !(parse.data$token %in% c('expr', 'FUNCTION')))
+    function.args <- subset(pd, pd$parent == d$p & 
+      !(pd$token %in% c('expr', 'FUNCTION')))
     parse2find(function.args)
 }
 
 
 #' @export
-pd_function_body <- function(..., lines, file, parse.data){
-    if(missing(parse.data)){
-        parse.data <- 
+pd_function_body <- function(..., lines, file, pd){
+    if(missing(pd)){
+        pd <- 
         if(!missing(lines))
             getParseData(parse(text=lines))
         else if(!missing(file))
             getParseData(parse(file=file))
     }
-    f.nodes <- subset(parse.data, parse.data$token == "FUNCTION")
+    f.nodes <- subset(pd, pd$token == "FUNCTION")
     if(!nrow(f.nodes)) return(empty.find)
-    kids <- get_children(f.nodes$parent, parse.data, 1)
+    kids <- get_children(f.nodes$parent, pd=pd, 1)
     body.parents  <- ldply(kids, tail, 1)
-    get_children(body.parents, parse.data)
+    get_children(body.parents, pd)
 }
 
 #' @rdname finders
 #' @export
-find_function_body <- function(..., lines, file
-    , parse.data = getParseData(parse(file, keep.source=TRUE))) {
-  f.nodes <- subset(parse.data, parse.data$token == "FUNCTION")
+find_function_body <- 
+function( ...
+        , lines, file
+        , pd = get_parse_data(parse(file, keep.source=TRUE))
+        ) {
+  f.nodes <- subset(pd, pd$token == "FUNCTION")
   if(!nrow(f.nodes)) return(empty.find)
-  body.parents  <- ldply(get_children(f.nodes$parent, parse.data, 1), tail, 1)
-  body.contents <- find_children(body.parents, parse.data)
+  body.parents  <- ldply(get_children(f.nodes$parent, pd=pd, 1), tail, 1)
+  body.contents <- find_children(body.parents, pd=pd)
   parse2find(body.contents)
 }
 
 
 #' @rdname finders
 #' @export
-find_call_args <- function(..., file, parse.data = getParseData(parse(file))) {
-  call.nodes <- subset(parse.data, 
-    parse.data$token == "SYMBOL_FUNCTION_CALL")
+find_call_args <- function(..., file, pd = getParseData(parse(file))) {
+  call.nodes <- subset(pd, 
+    pd$token == "SYMBOL_FUNCTION_CALL")
   if(!nrow(call.nodes)) return(empty.find)
   call.args <- 
-    llply(call.nodes$id, get_family, parse.data=parse.data, nancestors=2)
+    llply(call.nodes$id, get_family, pd=pd, nancestors=2)
   parse2find(call.args)
 }

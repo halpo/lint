@@ -15,27 +15,49 @@ Imports:
     harvestr,
     stringr,
     dostats,
-    foreach
+    foreach,
+    assertthat,
+    yaml,
+    R6
 Suggests:
     testthat,
-    roxygen2
+    stringi
 License: GPL (>=3)
 Collate:
+    'arg.R'
+    'arguments-list.R.R'
     'base.patterns.R'
     'is_parse_data.R'
     'classify_comment.R'
     'class-lintDocumentation.R'
     'class-documentedFunction.R'
+    'consecutive.R'
     'conversion.R'
+    'document_function.R'
+    'document_package.R'
+    'examples.R'
     'extract.R'
     'family.R'
     'find-utils.R'
     'finders.R'
+    'format_Rd.R'
+    'format_md.R'
+    'format_yaml.R'
+    'function-documentation.R'
     'functional.R'
+    'get_parse_data.R'
+    'is_vectorized.R'
+    'lint-section.R'
     'lint.R'
     'pattern-utils.R'
     'styles.spacing.R'
     'styles.performance.R'
     'styles.assignment.R'
     'lint.patterns.R'
+    'parse-data-utils.R'
+    'random_id.R'
+    'references.R'
+    'rewrap.R'
+    'self_documenting.R'
     'utils-md.R'
+    'zzz.R'
