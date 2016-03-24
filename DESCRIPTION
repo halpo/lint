@@ -7,6 +7,8 @@ Maintainer: Andrew Redd <andrew.redd@hsc.utah.edu>
 Description: Tools for checking R code for style compliance.
     Tools for creating style compliance tests.
     A suite of pre-built tests is provided.
+URL: https://github.com/halpo/lint
+BugReports: https://github.com/halpo/lint/issues
 Depends:
     R (>= 3.0)
 Imports:
