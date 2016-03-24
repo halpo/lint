@@ -23,7 +23,10 @@ context("Documentation::function::arg")
 test_that("form_argument creates argument", {
     FUN <- form_argument
     srclines <- as.character(attr(FUN, 'srcref'))
-    function.parse <- getParseData(parsed <- parse(text=srclines))
+    parse.data <- 
+    function.parse <- fix_parent(
+        getParseData(parsed <- parse(text=srclines))
+    )
     
     split.parse <- only_arguments(function.parse)
     
@@ -35,7 +38,10 @@ test_that("form_argument creates argument", {
 test_that("document_arguments creates argument", {
     FUN <- get_arguments
     srclines <- as.character(attr(FUN, 'srcref'))
-    function.parse <- getParseData(parsed <- parse(text=srclines))
+    function.parse <- bridge_parent(
+        parse.data <-
+        getParseData(parsed <- parse(text=srclines))
+    )
     x <- document_arguments(function.parse)
     expect_that(x, is_a("argumentsDocumentation"))
     expect_that(x, is_a("refList"))
