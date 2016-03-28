@@ -24,29 +24,39 @@
 # this program. If not, see http://www.gnu.org/licenses/.
 #
 }###############################################################################
+
+
 lint.tests.head.lines <-
 c( paste("#! This file was automatically produced by lint on ", Sys.time())
  , "#! changes will be overwritten."
  )
 
+is_Fblock <-
+function( pd ){
+    #! test if an expresion ID points to a `if(FALSE)` statement.
+    #! @keyword internal
+    #ENHANCEMENT(Performance):use ID only to allow for non subsetted pd.
+    pd <- sort(pd)
+    if(!identical(pd[1:3,'token'], c("expr", "IF", "'('"))) return(FALSE)
+    return( ( pd[4,'token'] == "NUM_CONST" && pd[4,'text'] == "FALSE")
+          ||( pd[4,'token'] == "SYMBOL"    && pd[4,'text'] == "F")
+          )
+}
 
-filter_iff_block_tagged <- function(pd, tag=NULL){
+filter_if_Fblock_tagged <- function(pd, tag=NULL){
     #! return the testing block if a testing block
     #! @keyword internal
     if(inherits(pd, 'list') && is_parse_data(pd[[1]])){
-        l <- lapply(pd, filter_iff_block_tagged, tag=tag)
+        l <- lapply(pd, filter_if_Fblock_tagged, tag=tag)
         l <- Filter(Negate(is.null), l)
         return(l)
     }
 
     pd <- sort(pd)
-    if(!identical(pd[1:3,'token'], c("expr", "IF", "'('"))) return(NULL)
-    if(!( ( pd[4,'token'] == "NUM_CONST" && pd[4,'text'] == "FALSE")
-        ||( pd[4,'token'] == "SYMBOL"    && pd[4,'text'] == "F")
-        )) return(NULL)
+    if(!is_Fblock(pd)) return(NULL)
 
     body.id <- subset(pd, token=="'{'")[1,'parent']
-    body <- get_family(body.id, pd)
+    body    <- get_family(body.id, pd)
 
     info.comment <- get_lint_comments(pd[pd$line1==pd$line1[[1]], ])
     info.string <- if(nrow(info.comment)>0) strip_lint_leads(info.comment$text)
@@ -57,9 +67,10 @@ filter_iff_block_tagged <- function(pd, tag=NULL){
              , info.string = info.string
              , tag=tag
              , block.root = pd[1,'id']
+             , body.id = body.id
              )
 }
-extract_testthat <-
+extract_block_testthat <-
 function( file.in   = NULL  #< file to extract blocks from
         , pd        = NULL  #< Parse data for file, will parse `file.in` if missing.
         , file.out  = NULL  #< file to write tests to, if provided must be fully specified, ie. `dir` will be ignored.
@@ -69,7 +80,7 @@ function( file.in   = NULL  #< file to extract blocks from
     tag <- "test(that|ing|s)?"
     if(is.null(file.in)){
         if( is.null(pd) ){
-            stop("Either file.in or pd must be provided to extract_testthat")
+            stop("Either file.in or pd must be provided to extract_block_testthat")
         }
     } else {
         lines <- readLines(file)
@@ -89,7 +100,7 @@ function( file.in   = NULL  #< file to extract blocks from
     #! either `@nomd{@testthat}@`, `@nomd{@testing}@`, `@nomd{test}@`,
     #! or simply `@nomd{@test}@` are acceptable.  The comment must be a
     #! lint style comment either `#!` or `#<`, regular comments are
-    #! not ignored.  The `if` the opening brace `{` and the tag
+    #! ignored.  The `if` the opening brace `{` and the tag
     #! must all be on the same line.
     #!
     comments <- extract_tagged_lines(get_lint_comments(pd), tag)
@@ -113,18 +124,22 @@ function( file.in   = NULL  #< file to extract blocks from
             #! directory.
             #!
             #! If the user does not provide the information string
-            #! is will be infered as the name of the assignment which
-            #! immediately preceeded the testing block.  If the
-            #! previous expression was not an assignment the info
-            #! string, must be provided.
+            #! it will be infered as the name of the assignment which
+            #! immediately preceeded the block(s).  If the
+            #! previous expression was not an assignment
+            #! or a similar [example block](extract_block_examples)
+            #! the info string, must be provided.
             #!
             test.id <- attr(block, 'block.root')
-            prev.id <- tail(subset(get_family(test.id, pd, 1, 0), id < test.id), 1)$id
-            prev.pd <- get_family(prev.id, pd)
+            prev.ids <- sort(subset(get_family(test.id, pd, 1, 0), id < test.id)$id, TRUE)
+            prev.id <- head(prev.ids, 1)
+            while(is_Fblock(prev.pd <- get_family(prev.id, pd)) && sum(prev.ids < prev.id)){
+                prev.id <- max(prev.ids[prev.ids < prev.id])
+            }
             if(is_pd_assignment(prev.pd)){
                 attr(block, 'info.string') <-
                     getParseText(prev.pd, get_pd_assign_variable_id(prev.pd))
-            } else stop("Malplaced testing block, see the documentation for `extract_testthat`.")
+            } else stop("Malplaced testing block, see the documentation for `extract_block_testthat`.")
         }
         #ENHANCEMENT: extend capabilities of the info string.
         out.text <- sprintf( "test_that(\"%s\", %s)"
@@ -141,7 +156,7 @@ function( file.in   = NULL  #< file to extract blocks from
                , file=file.out
                , sep='\n', append=TRUE)
         }
-        #! @return This functionis called for the side-effects of
+        #! @return This function is called for the side-effects of
         #^ creating testing files from source files.
         #^ If `file.in` is provided then the file @nomd{"<<dir>>/test-<<file.in>>"}@
         #^ is created, where  @nomd{<<file.in>>}@ is replaced with the value of
@@ -177,7 +192,7 @@ file.in <- textConnection(text)
 
 out <- ''
 file.out <- textConnection("out", open="w", local=TRUE)
-extract_testthat(pd=pd, file.out=file.out)
+extract_block_testthat(pd=pd, file.out=file.out)
 if(isOpen(file.out)) close(file.out)
 
 expected <- c( "test_that(\"hello_world\", {#!@testthat"
@@ -212,7 +227,7 @@ function( pkg = '.'
         dir.create(testthat.dir)
     files <- list.files( file.path(pkg, "R"), pattern="\\.r$"
                        , ignore.case=T, full.names=T)
-    lapply(files, extract_testthat, dir=testthat.dir )
+    lapply(files, extract_block_testthat, dir=testthat.dir )
 }
 
 #ENHANCEMENT: run_embedded_tests.

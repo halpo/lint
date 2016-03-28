@@ -20,13 +20,13 @@ if(FALSE){# development
     traceback()
 }
 document_package <-
-function(){
+function( env = topenv()
+        ){
     #! document all objects in a package.
     #!
     #! Place this as the last command when loading the code.
     #! This should be in a file such as `zzz.R` but should always
     #! be listed last in the Collate field of the DESCRIPTION file.
-    env <- topenv()
     objects <- ls(envir=env, all=TRUE)
     for(name in objects){
         object <- get(name, envir=env)
