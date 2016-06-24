@@ -183,7 +183,7 @@ function( x             #< A [function-documentation] object
         if(length(include) > 1) warning("for `include`, 'all' should not be specified with any other name.")
         include  = names(x)
     } 
-
+    unlist(
     c( if(!is.null(x$name       ) && 'name'        %in% include) sprintf("\\name{%s}" , x$name)
      , if(!is.null(x$alias      ) && 'alias'       %in% include) sprintf("\\alias{%s}", x$alias)
      , if(!is.null(x$title      ) && 'title'       %in% include) sprintf("\\title{%s}", md2rd(x$title))
@@ -196,7 +196,7 @@ function( x             #< A [function-documentation] object
      , if(!is.null(x$sections   ) && 'sections'    %in% include) sapply(x$sections, format_Rd, ...)
      , if(!is.null(x$references ) && 'references'  %in% include) format_Rd(x$references, ...)
      , if(!is.null(x$examples   ) && 'examples'    %in% include) c("\\examples{", x$examples, "}")
-     )
+     ))
 }
 if(FALSE){#! @testthat
     stopifnot(require(stringi))
