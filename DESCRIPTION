@@ -32,8 +32,6 @@ Collate:
     'base.patterns.R'
     'is_parse_data.R'
     'classify_comment.R'
-    'class-lintDocumentation.R'
-    'class-documentedFunction.R'
     'consecutive.R'
     'conversion.R'
     'document_function.R'
